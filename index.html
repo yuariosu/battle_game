@@ -156,7 +156,7 @@
             cursor: grab;
         }
 
-        #gameCanvas:active {
+        #gameCanvas.dragging {
             cursor: grabbing;
         }
 
@@ -616,8 +616,12 @@
         <div id="instructions">
             <strong>操作方法:</strong>
             • 左ドラッグ: カメラ回転<br>
-            • 右クリック: ユニット選択/移動/攻撃<br>
-            • ホイール: ズーム
+            • 左クリック: 駒選択・移動・攻撃<br>
+            • ホイール: ズーム<br>
+            <br>
+            <strong>色分け:</strong>
+            濃い茶色 = 味方<br>
+            灰色 = 敵
         </div>
     </div>
 
@@ -636,6 +640,7 @@
         let scene, camera, renderer, raycaster, mouse;
         let terrainMeshes = [];
         let unitMeshes = new Map();
+        let unitHpBars = new Map();
         let selectedUnitMesh = null;
         let moveIndicators = [];
         let attackIndicators = [];
@@ -688,14 +693,14 @@
 
             setupStats() {
                 const stats = {
-                    'infantry': { hp: 100, move: 3, attackRange: 2, attack: 30, name: '歩兵', color: 0x8d6e63 },
-                    'tank': { hp: 180, move: 2, attackRange: 3, attack: 45, name: '戦車', color: 0x5d4037 },
-                    'artillery': { hp: 120, move: 2, attackRange: 5, attack: 40, name: '砲兵', color: 0x6d4c41 },
-                    'sniper': { hp: 80, move: 2, attackRange: 6, attack: 60, name: '狙撃兵', color: 0x795548 },
-                    'heavy_tank': { hp: 250, move: 1, attackRange: 3, attack: 55, name: '重戦車', color: 0x4e342e },
-                    'recon': { hp: 70, move: 4, attackRange: 2, attack: 20, name: '偵察兵', color: 0xa1887f },
-                    'medic': { hp: 90, move: 3, attackRange: 1, attack: 15, name: '衛生兵', color: 0xbcaaa4 },
-                    'engineer': { hp: 85, move: 2, attackRange: 2, attack: 25, name: '工兵', color: 0x8d6e63 }
+                    'infantry': { hp: 100, move: 3, attackRange: 2, attack: 30, name: '歩兵' },
+                    'tank': { hp: 180, move: 2, attackRange: 3, attack: 45, name: '戦車' },
+                    'artillery': { hp: 120, move: 2, attackRange: 5, attack: 40, name: '砲兵' },
+                    'sniper': { hp: 80, move: 2, attackRange: 6, attack: 60, name: '狙撃兵' },
+                    'heavy_tank': { hp: 250, move: 2, attackRange: 3, attack: 55, name: '重戦車' },
+                    'recon': { hp: 70, move: 4, attackRange: 2, attack: 20, name: '偵察兵' },
+                    'medic': { hp: 90, move: 3, attackRange: 1, attack: 15, name: '衛生兵' },
+                    'engineer': { hp: 85, move: 2, attackRange: 2, attack: 25, name: '工兵' }
                 };
 
                 const s = stats[this.type];
@@ -705,13 +710,23 @@
                 this.attackRange = s.attackRange;
                 this.attackPower = s.attack;
                 this.unitName = s.name;
-                this.unitColor = s.color;
             }
 
             getName() {
                 const prefix = this.isPlayer ? '味方' : '敵';
                 const suffix = this.kills >= 2 ? ' ★' : '';
                 return prefix + this.unitName + suffix;
+            }
+
+            // 敵味方で色を変える - 味方をより濃い茶色に
+            getColor() {
+                if (this.isPlayer) {
+                    // 味方は濃い茶色
+                    return 0x5d4037; // ダークブラウン
+                } else {
+                    // 敵は灰色
+                    return 0x616161; // ダークグレー
+                }
             }
 
             reset() {
@@ -785,7 +800,7 @@
             canvas.addEventListener('mousedown', onMouseDown);
             canvas.addEventListener('mousemove', onMouseMove);
             canvas.addEventListener('mouseup', onMouseUp);
-            canvas.addEventListener('wheel', onWheel);
+            canvas.addEventListener('wheel', onWheel, { passive: false });
             canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
             // ゲーム初期化
@@ -797,15 +812,20 @@
             // 既存のメッシュをクリア
             terrainMeshes.forEach(mesh => scene.remove(mesh));
             unitMeshes.forEach(mesh => scene.remove(mesh));
+            unitHpBars.forEach(bar => {
+                scene.remove(bar.background);
+                scene.remove(bar.foreground);
+            });
             terrainMeshes = [];
             unitMeshes.clear();
+            unitHpBars.clear();
             clearIndicators();
 
             // 地形生成
             gameState.terrain = generateTerrain(gameState.difficulty);
             createTerrainMeshes();
 
-            // ユニット配置（難易度別）
+            // ユニット配置
             const playerSetup = {
                 'easy': [
                     new Unit(0, 9, 'infantry', true),
@@ -899,7 +919,6 @@
             const terrain = [];
 
             if (difficulty === 'easy') {
-                // ノルマンディー風：海岸線
                 for (let y = 0; y < GRID_SIZE; y++) {
                     terrain[y] = [];
                     for (let x = 0; x < GRID_SIZE; x++) {
@@ -918,7 +937,6 @@
                     }
                 }
             } else if (difficulty === 'normal') {
-                // 東部戦線風：広大な平原と川
                 for (let y = 0; y < GRID_SIZE; y++) {
                     terrain[y] = [];
                     for (let x = 0; x < GRID_SIZE; x++) {
@@ -933,7 +951,6 @@
                     }
                 }
             } else {
-                // アルデンヌ風：密林地帯
                 for (let y = 0; y < GRID_SIZE; y++) {
                     terrain[y] = [];
                     for (let x = 0; x < GRID_SIZE; x++) {
@@ -980,13 +997,14 @@
             allUnits.forEach(unit => {
                 const terrain = gameState.terrain[unit.y][unit.x];
                 const baseHeight = TILE_HEIGHT + terrain.height;
+                const unitColor = unit.getColor(); // 敵味方で色分け
 
                 let mesh;
                 if (unit.type === 'tank' || unit.type === 'heavy_tank') {
                     const group = new THREE.Group();
 
                     const bodyGeo = new THREE.BoxGeometry(1.2, 0.4, 1.5);
-                    const bodyMat = new THREE.MeshLambertMaterial({ color: unit.unitColor });
+                    const bodyMat = new THREE.MeshLambertMaterial({ color: unitColor });
                     const body = new THREE.Mesh(bodyGeo, bodyMat);
                     body.position.y = 0.2;
                     body.castShadow = true;
@@ -1013,12 +1031,13 @@
                         group.add(armor);
                     }
 
+                    group.userData = { type: 'unit', unit: unit };
                     mesh = group;
                 } else if (unit.type === 'artillery') {
                     const group = new THREE.Group();
 
                     const baseGeo = new THREE.CylinderGeometry(0.4, 0.5, 0.3, 8);
-                    const baseMat = new THREE.MeshLambertMaterial({ color: unit.unitColor });
+                    const baseMat = new THREE.MeshLambertMaterial({ color: unitColor });
                     const base = new THREE.Mesh(baseGeo, baseMat);
                     base.castShadow = true;
                     group.add(base);
@@ -1030,22 +1049,15 @@
                     barrel.castShadow = true;
                     group.add(barrel);
 
+                    group.userData = { type: 'unit', unit: unit };
                     mesh = group;
                 } else {
                     const geometry = new THREE.CylinderGeometry(0.3, 0.3, 1, 8);
-                    const material = new THREE.MeshLambertMaterial({ color: unit.unitColor });
+                    const material = new THREE.MeshLambertMaterial({ color: unitColor });
                     mesh = new THREE.Mesh(geometry, material);
                     mesh.castShadow = true;
+                    mesh.userData = { type: 'unit', unit: unit };
                 }
-
-                // 旗で色分け
-                const flagGeo = new THREE.BoxGeometry(0.1, 0.6, 0.02);
-                const flagMat = new THREE.MeshLambertMaterial({ 
-                    color: unit.isPlayer ? 0x558b2f : 0xbf360c 
-                });
-                const flag = new THREE.Mesh(flagGeo, flagMat);
-                flag.position.set(0, 1.2, 0);
-                mesh.add(flag);
 
                 mesh.position.set(
                     unit.x * TILE_SIZE,
@@ -1053,10 +1065,99 @@
                     unit.y * TILE_SIZE
                 );
 
-                mesh.userData = { type: 'unit', unit: unit };
                 scene.add(mesh);
                 unitMeshes.set(unit.id, mesh);
+
+                // HPバー作成
+                createHpBar(unit);
             });
+        }
+
+        function createHpBar(unit) {
+            const hpBarWidth = 1.2;
+            const hpBarHeight = 0.15;
+            const hpBarY = 1.5;
+
+            // 背景（黒）
+            const bgGeo = new THREE.PlaneGeometry(hpBarWidth, hpBarHeight);
+            const bgMat = new THREE.MeshBasicMaterial({ 
+                color: 0x000000,
+                side: THREE.DoubleSide
+            });
+            const bgMesh = new THREE.Mesh(bgGeo, bgMat);
+            bgMesh.position.set(
+                unit.x * TILE_SIZE,
+                hpBarY,
+                unit.y * TILE_SIZE
+            );
+
+            // 前景（HP）
+            const fgGeo = new THREE.PlaneGeometry(hpBarWidth, hpBarHeight);
+            const hpPercent = unit.hp / unit.maxHp;
+            let color;
+            if (hpPercent > 0.6) {
+                color = 0x7cb342; // 緑
+            } else if (hpPercent > 0.3) {
+                color = 0xfdd835; // 黄色
+            } else {
+                color = 0xe53935; // 赤
+            }
+            const fgMat = new THREE.MeshBasicMaterial({ 
+                color: color,
+                side: THREE.DoubleSide
+            });
+            const fgMesh = new THREE.Mesh(fgGeo, fgMat);
+            fgMesh.position.set(
+                unit.x * TILE_SIZE,
+                hpBarY + 0.01,
+                unit.y * TILE_SIZE
+            );
+            fgMesh.scale.x = hpPercent;
+
+            scene.add(bgMesh);
+            scene.add(fgMesh);
+
+            unitHpBars.set(unit.id, {
+                background: bgMesh,
+                foreground: fgMesh,
+                unit: unit
+            });
+        }
+
+        function updateHpBar(unit) {
+            const hpBar = unitHpBars.get(unit.id);
+            if (!hpBar) return;
+
+            const hpPercent = unit.hp / unit.maxHp;
+            hpBar.foreground.scale.x = hpPercent;
+
+            // 色を変更
+            let color;
+            if (hpPercent > 0.6) {
+                color = 0x7cb342;
+            } else if (hpPercent > 0.3) {
+                color = 0xfdd835;
+            } else {
+                color = 0xe53935;
+            }
+            hpBar.foreground.material.color.setHex(color);
+        }
+
+        function updateHpBarPosition(unit) {
+            const hpBar = unitHpBars.get(unit.id);
+            if (!hpBar) return;
+
+            const hpBarY = 1.5;
+            hpBar.background.position.set(
+                unit.x * TILE_SIZE,
+                hpBarY,
+                unit.y * TILE_SIZE
+            );
+            hpBar.foreground.position.set(
+                unit.x * TILE_SIZE,
+                hpBarY + 0.01,
+                unit.y * TILE_SIZE
+            );
         }
 
         function clearIndicators() {
@@ -1067,8 +1168,6 @@
         }
 
         function showMoveRange(unit) {
-            clearIndicators();
-
             const visited = new Set();
             const queue = [{x: unit.x, y: unit.y, cost: 0}];
 
@@ -1094,6 +1193,7 @@
                         const mesh = new THREE.Mesh(geo, mat);
                         mesh.rotation.x = -Math.PI / 2;
                         mesh.position.set(x * TILE_SIZE, height + 0.05, y * TILE_SIZE);
+                        mesh.userData = { type: 'moveIndicator', x, y };
                         scene.add(mesh);
                         moveIndicators.push(mesh);
                     }
@@ -1137,6 +1237,7 @@
                                 const mesh = new THREE.Mesh(geo, mat);
                                 mesh.rotation.x = -Math.PI / 2;
                                 mesh.position.set(newX * TILE_SIZE, height + 0.06, newY * TILE_SIZE);
+                                mesh.userData = { type: 'attackIndicator', targetUnit: targetUnit };
                                 scene.add(mesh);
                                 attackIndicators.push(mesh);
                             }
@@ -1156,6 +1257,7 @@
                     baseHeight + 0.5,
                     unit.y * TILE_SIZE
                 );
+                updateHpBarPosition(unit);
             }
         }
 
@@ -1165,15 +1267,27 @@
                 scene.remove(mesh);
                 unitMeshes.delete(unit.id);
             }
+
+            const hpBar = unitHpBars.get(unit.id);
+            if (hpBar) {
+                scene.remove(hpBar.background);
+                scene.remove(hpBar.foreground);
+                unitHpBars.delete(unit.id);
+            }
         }
 
         // マウスイベント
         let isDragging = false;
+        let hasDragged = false;
+        let mouseDownPos = { x: 0, y: 0 };
         let previousMousePosition = { x: 0, y: 0 };
+        const DRAG_THRESHOLD = 5;
 
         function onMouseDown(event) {
             if (event.button === 0) {
                 isDragging = true;
+                hasDragged = false;
+                mouseDownPos = { x: event.clientX, y: event.clientY };
                 previousMousePosition = { x: event.clientX, y: event.clientY };
             }
         }
@@ -1183,21 +1297,31 @@
                 const deltaX = event.clientX - previousMousePosition.x;
                 const deltaY = event.clientY - previousMousePosition.y;
 
-                const center = new THREE.Vector3(
-                    GRID_SIZE * TILE_SIZE / 2, 
-                    0, 
-                    GRID_SIZE * TILE_SIZE / 2
+                const dragDistance = Math.sqrt(
+                    Math.pow(event.clientX - mouseDownPos.x, 2) + 
+                    Math.pow(event.clientY - mouseDownPos.y, 2)
                 );
 
-                const offset = new THREE.Vector3().subVectors(camera.position, center);
+                if (dragDistance > DRAG_THRESHOLD) {
+                    hasDragged = true;
+                    document.getElementById('gameCanvas').classList.add('dragging');
 
-                const spherical = new THREE.Spherical().setFromVector3(offset);
-                spherical.theta -= deltaX * 0.01;
-                spherical.phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, spherical.phi - deltaY * 0.01));
+                    const center = new THREE.Vector3(
+                        GRID_SIZE * TILE_SIZE / 2, 
+                        0, 
+                        GRID_SIZE * TILE_SIZE / 2
+                    );
 
-                offset.setFromSpherical(spherical);
-                camera.position.copy(center).add(offset);
-                camera.lookAt(center);
+                    const offset = new THREE.Vector3().subVectors(camera.position, center);
+                    const spherical = new THREE.Spherical().setFromVector3(offset);
+
+                    spherical.theta -= deltaX * 0.01;
+                    spherical.phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, spherical.phi - deltaY * 0.01));
+
+                    offset.setFromSpherical(spherical);
+                    camera.position.copy(center).add(offset);
+                    camera.lookAt(center);
+                }
 
                 previousMousePosition = { x: event.clientX, y: event.clientY };
             }
@@ -1205,9 +1329,12 @@
 
         function onMouseUp(event) {
             if (event.button === 0) {
+                if (!hasDragged) {
+                    handleClick(event);
+                }
                 isDragging = false;
-            } else if (event.button === 2) {
-                handleRightClick(event);
+                hasDragged = false;
+                document.getElementById('gameCanvas').classList.remove('dragging');
             }
         }
 
@@ -1225,26 +1352,30 @@
             camera.position.copy(center).add(direction.multiplyScalar(newDistance));
         }
 
-        function handleRightClick(event) {
+        function handleClick(event) {
             if (gameState.gameOver || gameState.turn !== 'player') return;
 
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects([...terrainMeshes, ...Array.from(unitMeshes.values())], true);
 
-            if (intersects.length > 0) {
-                let clickedObject = intersects[0].object;
-                while (clickedObject.parent && !clickedObject.userData.type) {
-                    clickedObject = clickedObject.parent;
+            const allUnitMeshes = Array.from(unitMeshes.values());
+            const unitIntersects = raycaster.intersectObjects(allUnitMeshes, true);
+
+            if (unitIntersects.length > 0) {
+                let clickedMesh = unitIntersects[0].object;
+                while (clickedMesh && !clickedMesh.userData.unit) {
+                    clickedMesh = clickedMesh.parent;
                 }
 
-                if (clickedObject.userData.type === 'unit') {
-                    const unit = clickedObject.userData.unit;
+                if (clickedMesh && clickedMesh.userData.unit) {
+                    const unit = clickedMesh.userData.unit;
+
                     if (unit.isPlayer) {
                         gameState.selectedUnit = unit;
                         selectedUnitMesh = unitMeshes.get(unit.id);
+                        clearIndicators();
                         if (!unit.hasMoved) showMoveRange(unit);
                         if (!unit.hasAttacked) showAttackRange(unit);
                         updateUI();
@@ -1254,22 +1385,57 @@
                             attackUnit(gameState.selectedUnit, unit);
                         }
                     }
-                } else if (clickedObject.userData.type === 'terrain') {
-                    const x = clickedObject.userData.x;
-                    const y = clickedObject.userData.y;
+                }
+                return;
+            }
 
+            if (attackIndicators.length > 0) {
+                const attackIntersects = raycaster.intersectObjects(attackIndicators);
+                if (attackIntersects.length > 0) {
+                    const indicator = attackIntersects[0].object;
+                    if (indicator.userData.targetUnit && gameState.selectedUnit) {
+                        attackUnit(gameState.selectedUnit, indicator.userData.targetUnit);
+                    }
+                    return;
+                }
+            }
+
+            if (moveIndicators.length > 0) {
+                const moveIntersects = raycaster.intersectObjects(moveIndicators);
+                if (moveIntersects.length > 0) {
+                    const indicator = moveIntersects[0].object;
                     if (gameState.selectedUnit && !gameState.selectedUnit.hasMoved) {
-                        if (!getUnitAt(x, y) && canMoveTo(gameState.selectedUnit, x, y)) {
-                            gameState.selectedUnit.x = x;
-                            gameState.selectedUnit.y = y;
-                            gameState.selectedUnit.hasMoved = true;
-                            updateUnitMeshPosition(gameState.selectedUnit);
-                            clearIndicators();
-                            if (!gameState.selectedUnit.hasAttacked) {
-                                showAttackRange(gameState.selectedUnit);
-                            }
-                            updateUI();
+                        gameState.selectedUnit.x = indicator.userData.x;
+                        gameState.selectedUnit.y = indicator.userData.y;
+                        gameState.selectedUnit.hasMoved = true;
+                        updateUnitMeshPosition(gameState.selectedUnit);
+                        clearIndicators();
+                        if (!gameState.selectedUnit.hasAttacked) {
+                            showAttackRange(gameState.selectedUnit);
                         }
+                        updateUI();
+                    }
+                    return;
+                }
+            }
+
+            const terrainIntersects = raycaster.intersectObjects(terrainMeshes);
+            if (terrainIntersects.length > 0) {
+                const clickedTerrain = terrainIntersects[0].object;
+                const x = clickedTerrain.userData.x;
+                const y = clickedTerrain.userData.y;
+
+                if (gameState.selectedUnit && !gameState.selectedUnit.hasMoved) {
+                    if (!getUnitAt(x, y) && canMoveTo(gameState.selectedUnit, x, y)) {
+                        gameState.selectedUnit.x = x;
+                        gameState.selectedUnit.y = y;
+                        gameState.selectedUnit.hasMoved = true;
+                        updateUnitMeshPosition(gameState.selectedUnit);
+                        clearIndicators();
+                        if (!gameState.selectedUnit.hasAttacked) {
+                            showAttackRange(gameState.selectedUnit);
+                        }
+                        updateUI();
                     }
                 }
             }
@@ -1292,8 +1458,17 @@
             // 選択ユニットの浮遊アニメーション
             unitMeshes.forEach((mesh, id) => {
                 if (gameState.selectedUnit && id === gameState.selectedUnit.id) {
-                    mesh.position.y += Math.sin(Date.now() * 0.005) * 0.01;
+                    const baseUnit = gameState.selectedUnit;
+                    const terrain = gameState.terrain[baseUnit.y][baseUnit.x];
+                    const baseHeight = TILE_HEIGHT + terrain.height + 0.5;
+                    mesh.position.y = baseHeight + Math.sin(Date.now() * 0.005) * 0.15;
                 }
+            });
+
+            // HPバーをカメラに向ける
+            unitHpBars.forEach(hpBar => {
+                hpBar.background.lookAt(camera.position);
+                hpBar.foreground.lookAt(camera.position);
             });
 
             renderer.render(scene, camera);
@@ -1352,6 +1527,9 @@
 
             target.hp -= actualDamage;
             attacker.hasAttacked = true;
+
+            // HPバー更新
+            updateHpBar(target);
 
             if (target.hp <= 0) {
                 const isEnemy = !target.isPlayer;
