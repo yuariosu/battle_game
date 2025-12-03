@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPERATION OVERLORD - 1944</title>
+    <title>OPERATION OVERLORD - 3D TACTICAL WARFARE</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -13,12 +14,7 @@
             background: linear-gradient(135deg, #3e2723 0%, #4e342e 50%, #5d4037 100%);
             font-family: 'Courier New', 'Special Elite', monospace;
             color: #3e2723;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
+            overflow: hidden;
         }
 
         body::before {
@@ -35,7 +31,21 @@
             z-index: 1;
         }
 
+        /* スタート画面 */
         #startScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(135deg, #3e2723 0%, #4e342e 50%, #5d4037 100%);
+        }
+
+        #startContent {
             background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
             padding: 50px;
             border-radius: 5px;
@@ -50,7 +60,7 @@
             z-index: 2;
         }
 
-        #startScreen::before {
+        #startContent::before {
             content: '★';
             position: absolute;
             top: 15px;
@@ -60,7 +70,7 @@
             color: #bf360c;
         }
 
-        #startScreen h1 {
+        #startContent h1 {
             font-size: 42px;
             color: #bf360c;
             margin-bottom: 5px;
@@ -70,7 +80,7 @@
             text-transform: uppercase;
         }
 
-        #startScreen .subtitle {
+        #startContent .subtitle {
             color: #5d4037;
             font-size: 16px;
             margin-bottom: 10px;
@@ -78,7 +88,7 @@
             letter-spacing: 2px;
         }
 
-        #startScreen .year {
+        #startContent .year {
             font-size: 64px;
             color: #3e2723;
             font-weight: bold;
@@ -140,103 +150,48 @@
             color: #5d4037;
         }
 
-        #gameContainer {
-            display: grid;
-            grid-template-columns: 650px 340px;
-            gap: 20px;
-            max-width: 1020px;
-            display: none;
-            position: relative;
-            z-index: 2;
-        }
-
-        #leftPanel {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        #header {
-            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
-            padding: 20px;
-            border: 6px solid #4e342e;
-            box-shadow: 
-                0 0 0 2px #d7ccc8,
-                0 8px 24px rgba(0,0,0,0.4),
-                inset 0 0 30px rgba(0,0,0,0.1);
-            text-align: center;
-            position: relative;
-        }
-
-        #header::before {
-            content: '★';
-            position: absolute;
-            top: 10px;
-            left: 20px;
-            font-size: 24px;
-            color: #bf360c;
-        }
-
-        #header::after {
-            content: '★';
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            font-size: 24px;
-            color: #bf360c;
-        }
-
-        h1 {
-            font-size: 26px;
-            color: #bf360c;
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
-            letter-spacing: 3px;
-            margin-bottom: 5px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        #subtitle {
-            color: #5d4037;
-            font-size: 12px;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-
-        #canvasWrapper {
-            position: relative;
-            background: #3e2723;
-            padding: 10px;
-            border: 6px solid #4e342e;
-            box-shadow: 
-                0 0 0 2px #d7ccc8,
-                0 10px 40px rgba(0,0,0,0.5),
-                inset 0 0 20px rgba(0,0,0,0.3);
-        }
-
+        /* ゲーム画面 */
         #gameCanvas {
             display: block;
-            cursor: crosshair;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            cursor: grab;
         }
 
-        #rightPanel {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            max-height: 750px;
+        #gameCanvas:active {
+            cursor: grabbing;
+        }
+
+        #gameContainer {
+            display: none;
+        }
+
+        #gameContainer.active {
+            display: block;
+        }
+
+        #ui-overlay {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 340px;
+            max-height: 90vh;
             overflow-y: auto;
+            pointer-events: none;
+            z-index: 100;
         }
 
-        #rightPanel::-webkit-scrollbar {
+        #ui-overlay > * {
+            pointer-events: auto;
+        }
+
+        #ui-overlay::-webkit-scrollbar {
             width: 10px;
         }
 
-        #rightPanel::-webkit-scrollbar-track {
+        #ui-overlay::-webkit-scrollbar-track {
             background: #3e2723;
         }
 
-        #rightPanel::-webkit-scrollbar-thumb {
+        #ui-overlay::-webkit-scrollbar-thumb {
             background: #6d4c41;
             border: 2px solid #3e2723;
         }
@@ -247,9 +202,10 @@
             border: 5px solid #4e342e;
             box-shadow: 
                 0 0 0 2px #d7ccc8,
-                0 8px 24px rgba(0,0,0,0.4),
+                0 8px 24px rgba(0,0,0,0.6),
                 inset 0 0 30px rgba(0,0,0,0.05);
             position: relative;
+            margin-bottom: 15px;
         }
 
         .panel::before {
@@ -314,6 +270,7 @@
             font-size: 13px;
             box-shadow: 0 3px 8px rgba(0,0,0,0.2);
             position: relative;
+            cursor: pointer;
         }
 
         .unit-card::before {
@@ -330,7 +287,6 @@
         .unit-card:hover {
             transform: translateX(5px);
             box-shadow: 0 5px 15px rgba(109, 76, 65, 0.4);
-            cursor: pointer;
         }
 
         .unit-card.selected {
@@ -420,12 +376,6 @@
             border-color: #f9a825;
         }
 
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
         button {
             background: linear-gradient(135deg, #6d4c41 0%, #5d4037 100%);
             color: #efebe9;
@@ -440,6 +390,8 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             font-family: 'Courier New', monospace;
             position: relative;
+            width: 100%;
+            margin: 5px 0;
         }
 
         button::before {
@@ -459,24 +411,10 @@
             background: linear-gradient(135deg, #5d4037 0%, #4e342e 100%);
         }
 
-        button:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
         button:disabled {
             background: linear-gradient(135deg, #8d6e63 0%, #795548 100%);
             cursor: not-allowed;
-            transform: none;
             opacity: 0.6;
-        }
-
-        button.secondary {
-            background: linear-gradient(135deg, #bf360c 0%, #d84315 100%);
-            border-color: #3e2723;
-        }
-
-        button.secondary:hover:not(:disabled) {
-            background: linear-gradient(135deg, #d84315 0%, #bf360c 100%);
         }
 
         button.success {
@@ -486,6 +424,15 @@
 
         button.success:hover:not(:disabled) {
             background: linear-gradient(135deg, #689f38 0%, #7cb342 100%);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #bf360c 0%, #d84315 100%);
+            border-color: #3e2723;
+        }
+
+        button.secondary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #d84315 0%, #bf360c 100%);
         }
 
         .legend-item {
@@ -507,6 +454,38 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
+        #instructions {
+            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
+            padding: 15px;
+            border: 5px solid #4e342e;
+            box-shadow: 0 0 0 2px #d7ccc8, 0 8px 24px rgba(0,0,0,0.6);
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            max-width: 300px;
+            font-size: 12px;
+            color: #3e2723;
+            z-index: 100;
+        }
+
+        #instructions strong {
+            color: #bf360c;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: rgba(191, 54, 12, 0.2);
+            padding: 6px 12px;
+            border: 2px solid #bf360c;
+            font-size: 12px;
+            margin: 8px 5px 5px 0;
+            font-weight: bold;
+            color: #3e2723;
+        }
+
         #gameOverlay {
             position: fixed;
             top: 0;
@@ -518,12 +497,6 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         #gameOverContent {
@@ -531,21 +504,8 @@
             padding: 60px;
             border: 10px solid #4e342e;
             text-align: center;
-            box-shadow: 
-                0 0 0 3px #d7ccc8,
-                0 20px 60px rgba(0,0,0,0.8),
-                inset 0 0 50px rgba(0,0,0,0.1);
-            animation: slideIn 0.5s;
+            box-shadow: 0 0 0 3px #d7ccc8, 0 20px 60px rgba(0,0,0,0.8);
             position: relative;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        #gameOverContent.win {
-            border-color: #2e7d32;
         }
 
         #gameOverContent::before {
@@ -557,6 +517,10 @@
             font-size: 24px;
             color: #bf360c;
             letter-spacing: 20px;
+        }
+
+        #gameOverContent.win {
+            border-color: #2e7d32;
         }
 
         #gameOverText {
@@ -574,84 +538,43 @@
             margin-bottom: 30px;
             font-weight: bold;
         }
-
-        .tooltip {
-            position: absolute;
-            background: linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%);
-            color: #3e2723;
-            padding: 10px 15px;
-            border: 3px solid #4e342e;
-            font-size: 12px;
-            pointer-events: none;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            font-weight: bold;
-        }
-
-        .info-badge {
-            display: inline-block;
-            background: rgba(191, 54, 12, 0.2);
-            padding: 6px 12px;
-            border: 2px solid #bf360c;
-            font-size: 12px;
-            margin: 8px 5px 5px 0;
-            font-weight: bold;
-            color: #3e2723;
-        }
-
-        .rivet {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: radial-gradient(circle, #3e2723 0%, #6d4c41 100%);
-            border-radius: 50%;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-        }
     </style>
 </head>
 <body>
+    <!-- スタート画面 -->
     <div id="startScreen">
-        <h1>OPERATION OVERLORD</h1>
-        <div class="subtitle">TACTICAL WARFARE</div>
-        <div class="year">1944</div>
+        <div id="startContent">
+            <h1>OPERATION OVERLORD</h1>
+            <div class="subtitle">3D TACTICAL WARFARE</div>
+            <div class="year">1944</div>
 
-        <div class="difficulty-select">
-            <div class="difficulty-option selected" data-difficulty="easy">
-                <div class="difficulty-name">★ PRIVATE</div>
-                <div class="difficulty-desc">ノルマンディー上陸作戦 | 敵6体 | 初級兵士</div>
+            <div class="difficulty-select">
+                <div class="difficulty-option selected" data-difficulty="easy">
+                    <div class="difficulty-name">★ PRIVATE</div>
+                    <div class="difficulty-desc">ノルマンディー上陸作戦 | 敵6体 vs 味方8体 | 初級兵士</div>
+                </div>
+                <div class="difficulty-option" data-difficulty="normal">
+                    <div class="difficulty-name">★★ SERGEANT</div>
+                    <div class="difficulty-desc">東部戦線 | 敵8体 vs 味方9体 | 熟練兵士</div>
+                </div>
+                <div class="difficulty-option" data-difficulty="hard">
+                    <div class="difficulty-name">★★★ CAPTAIN</div>
+                    <div class="difficulty-desc">アルデンヌの戦い | 敵10体 vs 味方10体 | 精鋭部隊</div>
+                </div>
             </div>
-            <div class="difficulty-option" data-difficulty="normal">
-                <div class="difficulty-name">★★ SERGEANT</div>
-                <div class="difficulty-desc">東部戦線 | 敵8体 | 熟練兵士</div>
-            </div>
-            <div class="difficulty-option" data-difficulty="hard">
-                <div class="difficulty-name">★★★ CAPTAIN</div>
-                <div class="difficulty-desc">アルデンヌの戦い | 敵10体 | 精鋭部隊</div>
-            </div>
+
+            <button class="success" onclick="startGame()" style="font-size: 20px; padding: 20px;">DEPLOY FORCES</button>
         </div>
-
-        <button class="success" onclick="startGame()" style="width: 100%; font-size: 20px; padding: 20px;">DEPLOY FORCES</button>
     </div>
 
-    <div id="tooltip" class="tooltip"></div>
-
+    <!-- ゲーム画面 -->
     <div id="gameContainer">
-        <div id="leftPanel">
-            <div id="header">
-                <h1>OPERATION OVERLORD</h1>
-                <div id="subtitle">TACTICAL WARFARE - 1944</div>
-                <div id="difficultyBadge" class="info-badge"></div>
-            </div>
+        <canvas id="gameCanvas"></canvas>
 
-            <div id="canvasWrapper">
-                <canvas id="gameCanvas" width="630" height="630"></canvas>
-            </div>
-        </div>
-
-        <div id="rightPanel">
+        <div id="ui-overlay">
             <div class="panel">
                 <div id="turnStatus">ALLIED TURN</div>
+                <div id="difficultyBadge" class="info-badge"></div>
             </div>
 
             <div class="panel">
@@ -684,14 +607,21 @@
             </div>
 
             <div class="panel">
-                <div class="controls">
-                    <button id="endTurnBtn" class="success" onclick="endPlayerTurn()">END TURN</button>
-                    <button class="secondary" onclick="backToMenu()">RETREAT</button>
-                </div>
+                <button id="endTurnBtn" class="success" onclick="endPlayerTurn()">END TURN</button>
+                <button class="secondary" onclick="resetCamera()">RESET CAMERA</button>
+                <button class="secondary" onclick="backToMenu()">RETREAT</button>
             </div>
+        </div>
+
+        <div id="instructions">
+            <strong>操作方法:</strong>
+            • 左ドラッグ: カメラ回転<br>
+            • 右クリック: ユニット選択/移動/攻撃<br>
+            • ホイール: ズーム
         </div>
     </div>
 
+    <!-- ゲームオーバー画面 -->
     <div id="gameOverlay">
         <div id="gameOverContent">
             <div id="gameOverText">VICTORY!</div>
@@ -702,17 +632,24 @@
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        // Three.js セットアップ
+        let scene, camera, renderer, raycaster, mouse;
+        let terrainMeshes = [];
+        let unitMeshes = new Map();
+        let selectedUnitMesh = null;
+        let moveIndicators = [];
+        let attackIndicators = [];
+
         const GRID_SIZE = 10;
-        const CELL_SIZE = canvas.width / GRID_SIZE;
+        const TILE_SIZE = 2;
+        const TILE_HEIGHT = 0.5;
 
         const TERRAIN = {
-            PLAIN: { name: '平地', moveCost: 1, defense: 0, color: '#c5e1a5', darkColor: '#aed581' },
-            FOREST: { name: '森林', moveCost: 2, defense: 0.3, color: '#558b2f', darkColor: '#33691e' },
-            MOUNTAIN: { name: '山岳', moveCost: 3, defense: 0.5, color: '#8d6e63', darkColor: '#6d4c41' },
-            RIVER: { name: '河川', moveCost: 4, defense: 0.2, color: '#64b5f6', darkColor: '#42a5f5' },
-            BEACH: { name: '砂浜', moveCost: 2, defense: -0.1, color: '#ffe082', darkColor: '#ffd54f' }
+            PLAIN: { name: '平地', height: 0, color: 0xc5e1a5, moveCost: 1, defense: 0 },
+            FOREST: { name: '森林', height: 0.3, color: 0x558b2f, moveCost: 2, defense: 0.3 },
+            MOUNTAIN: { name: '山岳', height: 0.8, color: 0x8d6e63, moveCost: 3, defense: 0.5 },
+            RIVER: { name: '河川', height: -0.1, color: 0x64b5f6, moveCost: 4, defense: 0.2 },
+            BEACH: { name: '砂浜', height: 0, color: 0xffe082, moveCost: 2, defense: -0.1 }
         };
 
         let selectedDifficulty = 'easy';
@@ -722,11 +659,12 @@
             playerUnits: [],
             enemyUnits: [],
             gameOver: false,
-            turnCount: 0,
+            turnCount: 1,
             terrain: [],
             difficulty: 'easy'
         };
 
+        // 難易度選択
         document.querySelectorAll('.difficulty-option').forEach(option => {
             option.addEventListener('click', function() {
                 document.querySelectorAll('.difficulty-option').forEach(o => o.classList.remove('selected'));
@@ -750,14 +688,14 @@
 
             setupStats() {
                 const stats = {
-                    'infantry': { hp: 100, move: 3, attackRange: 2, attack: 30, name: '歩兵' },
-                    'tank': { hp: 180, move: 2, attackRange: 3, attack: 45, name: '戦車' },
-                    'artillery': { hp: 120, move: 2, attackRange: 5, attack: 40, name: '砲兵' },
-                    'sniper': { hp: 80, move: 2, attackRange: 6, attack: 60, name: '狙撃兵' },
-                    'heavy_tank': { hp: 250, move: 1, attackRange: 3, attack: 55, name: '重戦車' },
-                    'recon': { hp: 70, move: 4, attackRange: 2, attack: 20, name: '偵察兵' },
-                    'medic': { hp: 90, move: 3, attackRange: 1, attack: 15, name: '衛生兵' },
-                    'engineer': { hp: 85, move: 2, attackRange: 2, attack: 25, name: '工兵' }
+                    'infantry': { hp: 100, move: 3, attackRange: 2, attack: 30, name: '歩兵', color: 0x8d6e63 },
+                    'tank': { hp: 180, move: 2, attackRange: 3, attack: 45, name: '戦車', color: 0x5d4037 },
+                    'artillery': { hp: 120, move: 2, attackRange: 5, attack: 40, name: '砲兵', color: 0x6d4c41 },
+                    'sniper': { hp: 80, move: 2, attackRange: 6, attack: 60, name: '狙撃兵', color: 0x795548 },
+                    'heavy_tank': { hp: 250, move: 1, attackRange: 3, attack: 55, name: '重戦車', color: 0x4e342e },
+                    'recon': { hp: 70, move: 4, attackRange: 2, attack: 20, name: '偵察兵', color: 0xa1887f },
+                    'medic': { hp: 90, move: 3, attackRange: 1, attack: 15, name: '衛生兵', color: 0xbcaaa4 },
+                    'engineer': { hp: 85, move: 2, attackRange: 2, attack: 25, name: '工兵', color: 0x8d6e63 }
                 };
 
                 const s = stats[this.type];
@@ -767,16 +705,13 @@
                 this.attackRange = s.attackRange;
                 this.attackPower = s.attack;
                 this.unitName = s.name;
+                this.unitColor = s.color;
             }
 
             getName() {
                 const prefix = this.isPlayer ? '味方' : '敵';
-                const suffix = this.isVeteran() ? ' ★' : '';
+                const suffix = this.kills >= 2 ? ' ★' : '';
                 return prefix + this.unitName + suffix;
-            }
-
-            isVeteran() {
-                return this.kills >= 2;
             }
 
             reset() {
@@ -785,97 +720,97 @@
             }
         }
 
-        // 戦場風マップ生成
-        function generateBattlefieldMap(difficulty) {
-            const terrain = [];
-
-            if (difficulty === 'easy') {
-                // ノルマンディー風：海岸線
-                for (let y = 0; y < GRID_SIZE; y++) {
-                    terrain[y] = [];
-                    for (let x = 0; x < GRID_SIZE; x++) {
-                        if (y <= 1) {
-                            // 海岸線
-                            terrain[y][x] = TERRAIN.BEACH;
-                        } else if (y >= 7) {
-                            // 内陸部（平地多め）
-                            terrain[y][x] = Math.random() < 0.7 ? TERRAIN.PLAIN : TERRAIN.FOREST;
-                        } else if (y <= 3) {
-                            // 崖・丘陵
-                            terrain[y][x] = Math.random() < 0.6 ? TERRAIN.MOUNTAIN : TERRAIN.FOREST;
-                        } else {
-                            // 中間地帯
-                            const rand = Math.random();
-                            if (rand < 0.5) terrain[y][x] = TERRAIN.PLAIN;
-                            else if (rand < 0.8) terrain[y][x] = TERRAIN.FOREST;
-                            else terrain[y][x] = TERRAIN.MOUNTAIN;
-                        }
-                    }
-                }
-            } else if (difficulty === 'normal') {
-                // 東部戦線風：広大な平原と点在する森
-                for (let y = 0; y < GRID_SIZE; y++) {
-                    terrain[y] = [];
-                    for (let x = 0; x < GRID_SIZE; x++) {
-                        // 川が斜めに横断
-                        if (Math.abs(x - y) <= 1 && x >= 3 && x <= 6) {
-                            terrain[y][x] = TERRAIN.RIVER;
-                        } else {
-                            const rand = Math.random();
-                            if (rand < 0.6) terrain[y][x] = TERRAIN.PLAIN;
-                            else if (rand < 0.85) terrain[y][x] = TERRAIN.FOREST;
-                            else terrain[y][x] = TERRAIN.MOUNTAIN;
-                        }
-                    }
-                }
-            } else {
-                // アルデンヌ風：密林地帯
-                for (let y = 0; y < GRID_SIZE; y++) {
-                    terrain[y] = [];
-                    for (let x = 0; x < GRID_SIZE; x++) {
-                        const rand = Math.random();
-                        if (rand < 0.3) terrain[y][x] = TERRAIN.PLAIN;
-                        else if (rand < 0.75) terrain[y][x] = TERRAIN.FOREST;
-                        else if (rand < 0.9) terrain[y][x] = TERRAIN.MOUNTAIN;
-                        else terrain[y][x] = TERRAIN.RIVER;
-                    }
-                }
-            }
-
-            return terrain;
-        }
-
         function startGame() {
             gameState.difficulty = selectedDifficulty;
             document.getElementById('startScreen').style.display = 'none';
-            document.getElementById('gameContainer').style.display = 'grid';
-            initGame();
+            document.getElementById('gameContainer').classList.add('active');
+
+            if (!scene) {
+                init();
+            } else {
+                initGame();
+            }
         }
 
         function backToMenu() {
-            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('gameContainer').classList.remove('active');
             document.getElementById('gameOverlay').style.display = 'none';
-            document.getElementById('startScreen').style.display = 'block';
+            document.getElementById('startScreen').style.display = 'flex';
+            clearIndicators();
+            if (gameState.selectedUnit) {
+                gameState.selectedUnit = null;
+                selectedUnitMesh = null;
+            }
+        }
+
+        function init() {
+            // シーン
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x3e2723);
+            scene.fog = new THREE.Fog(0x3e2723, 20, 50);
+
+            // カメラ
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(10, 15, 10);
+            camera.lookAt(GRID_SIZE * TILE_SIZE / 2, 0, GRID_SIZE * TILE_SIZE / 2);
+
+            // レンダラー
+            const canvas = document.getElementById('gameCanvas');
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // ライト
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.left = -20;
+            directionalLight.shadow.camera.right = 20;
+            directionalLight.shadow.camera.top = 20;
+            directionalLight.shadow.camera.bottom = -20;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+
+            // レイキャスター
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // イベント
+            window.addEventListener('resize', onWindowResize);
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('wheel', onWheel);
+            canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // ゲーム初期化
+            initGame();
+            animate();
         }
 
         function initGame() {
-            gameState = {
-                turn: 'player',
-                selectedUnit: null,
-                playerUnits: [],
-                enemyUnits: [],
-                gameOver: false,
-                turnCount: 1,
-                terrain: generateBattlefieldMap(gameState.difficulty),
-                difficulty: gameState.difficulty
-            };
+            // 既存のメッシュをクリア
+            terrainMeshes.forEach(mesh => scene.remove(mesh));
+            unitMeshes.forEach(mesh => scene.remove(mesh));
+            terrainMeshes = [];
+            unitMeshes.clear();
+            clearIndicators();
 
-            // 戦力バランス調整：味方に重戦車追加
+            // 地形生成
+            gameState.terrain = generateTerrain(gameState.difficulty);
+            createTerrainMeshes();
+
+            // ユニット配置（難易度別）
             const playerSetup = {
                 'easy': [
                     new Unit(0, 9, 'infantry', true),
                     new Unit(2, 8, 'tank', true),
-                    new Unit(4, 9, 'heavy_tank', true),  // 追加
+                    new Unit(4, 9, 'heavy_tank', true),
                     new Unit(6, 8, 'artillery', true),
                     new Unit(8, 9, 'sniper', true),
                     new Unit(1, 9, 'recon', true),
@@ -885,7 +820,7 @@
                 'normal': [
                     new Unit(0, 9, 'infantry', true),
                     new Unit(2, 8, 'tank', true),
-                    new Unit(4, 9, 'heavy_tank', true),  // 追加
+                    new Unit(4, 9, 'heavy_tank', true),
                     new Unit(6, 8, 'artillery', true),
                     new Unit(8, 9, 'sniper', true),
                     new Unit(1, 9, 'recon', true),
@@ -895,8 +830,8 @@
                 ],
                 'hard': [
                     new Unit(0, 9, 'infantry', true),
-                    new Unit(2, 8, 'heavy_tank', true),  // 追加
-                    new Unit(4, 9, 'heavy_tank', true),  // 追加
+                    new Unit(2, 8, 'heavy_tank', true),
+                    new Unit(4, 9, 'heavy_tank', true),
                     new Unit(6, 8, 'artillery', true),
                     new Unit(8, 9, 'sniper', true),
                     new Unit(1, 9, 'recon', true),
@@ -943,6 +878,13 @@
             gameState.playerUnits = playerSetup[gameState.difficulty];
             gameState.enemyUnits = enemySetup[gameState.difficulty];
 
+            createUnitMeshes();
+
+            gameState.turn = 'player';
+            gameState.selectedUnit = null;
+            gameState.gameOver = false;
+            gameState.turnCount = 1;
+
             const difficultyNames = {
                 'easy': '★ PRIVATE - ノルマンディー',
                 'normal': '★★ SERGEANT - 東部戦線',
@@ -950,359 +892,183 @@
             };
             document.getElementById('difficultyBadge').textContent = difficultyNames[gameState.difficulty];
 
-            document.getElementById('gameOverlay').style.display = 'none';
             updateUI();
-            drawGame();
         }
 
-        function drawTerrain() {
-            for (let y = 0; y < GRID_SIZE; y++) {
-                for (let x = 0; x < GRID_SIZE; x++) {
-                    const terrain = gameState.terrain[y][x];
+        function generateTerrain(difficulty) {
+            const terrain = [];
 
-                    // 地形グラデーション
-                    const gradient = ctx.createLinearGradient(
-                        x * CELL_SIZE, y * CELL_SIZE,
-                        (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE
-                    );
-                    gradient.addColorStop(0, terrain.color);
-                    gradient.addColorStop(1, terrain.darkColor);
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-
-                    // 地形テクスチャ
-                    ctx.save();
-                    ctx.globalAlpha = 0.2;
-
-                    if (terrain === TERRAIN.FOREST) {
-                        for (let i = 0; i < 4; i++) {
-                            const tx = x * CELL_SIZE + Math.random() * CELL_SIZE;
-                            const ty = y * CELL_SIZE + Math.random() * CELL_SIZE;
-                            ctx.fillStyle = '#1b5e20';
-                            ctx.beginPath();
-                            ctx.arc(tx, ty, 4, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
-                    } else if (terrain === TERRAIN.MOUNTAIN) {
-                        ctx.strokeStyle = '#4e342e';
-                        ctx.lineWidth = 1.5;
-                        for (let i = 0; i < 3; i++) {
-                            ctx.beginPath();
-                            ctx.arc(
-                                x * CELL_SIZE + CELL_SIZE / 2,
-                                y * CELL_SIZE + CELL_SIZE / 2,
-                                8 + i * 6, 0, Math.PI * 2
-                            );
-                            ctx.stroke();
-                        }
-                    } else if (terrain === TERRAIN.RIVER) {
-                        ctx.strokeStyle = '#0d47a1';
-                        ctx.lineWidth = 2;
-                        for (let i = 0; i < 2; i++) {
-                            ctx.beginPath();
-                            ctx.moveTo(x * CELL_SIZE, y * CELL_SIZE + i * 25);
-                            ctx.bezierCurveTo(
-                                x * CELL_SIZE + CELL_SIZE / 4, y * CELL_SIZE + i * 25 + 6,
-                                x * CELL_SIZE + CELL_SIZE * 3 / 4, y * CELL_SIZE + i * 25 - 6,
-                                (x + 1) * CELL_SIZE, y * CELL_SIZE + i * 25
-                            );
-                            ctx.stroke();
-                        }
-                    } else if (terrain === TERRAIN.BEACH) {
-                        ctx.fillStyle = '#f57f17';
-                        for (let i = 0; i < 8; i++) {
-                            const tx = x * CELL_SIZE + Math.random() * CELL_SIZE;
-                            const ty = y * CELL_SIZE + Math.random() * CELL_SIZE;
-                            ctx.fillRect(tx, ty, 2, 2);
-                        }
-                    } else {
-                        ctx.fillStyle = '#689f38';
-                        for (let i = 0; i < 6; i++) {
-                            const tx = x * CELL_SIZE + Math.random() * CELL_SIZE;
-                            const ty = y * CELL_SIZE + Math.random() * CELL_SIZE;
-                            ctx.fillRect(tx, ty, 2, 2);
+            if (difficulty === 'easy') {
+                // ノルマンディー風：海岸線
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    terrain[y] = [];
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        if (y <= 1) {
+                            terrain[y][x] = TERRAIN.BEACH;
+                        } else if (y >= 7) {
+                            terrain[y][x] = Math.random() < 0.7 ? TERRAIN.PLAIN : TERRAIN.FOREST;
+                        } else if (y <= 3) {
+                            terrain[y][x] = Math.random() < 0.6 ? TERRAIN.MOUNTAIN : TERRAIN.FOREST;
+                        } else {
+                            const rand = Math.random();
+                            if (rand < 0.5) terrain[y][x] = TERRAIN.PLAIN;
+                            else if (rand < 0.8) terrain[y][x] = TERRAIN.FOREST;
+                            else terrain[y][x] = TERRAIN.MOUNTAIN;
                         }
                     }
-
-                    ctx.restore();
-
-                    // ビネット効果
-                    ctx.fillStyle = 'rgba(62,39,35,' + (Math.random() * 0.08) + ')';
-                    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                }
+            } else if (difficulty === 'normal') {
+                // 東部戦線風：広大な平原と川
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    terrain[y] = [];
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        if (Math.abs(x - y) <= 1 && x >= 3 && x <= 6) {
+                            terrain[y][x] = TERRAIN.RIVER;
+                        } else {
+                            const rand = Math.random();
+                            if (rand < 0.6) terrain[y][x] = TERRAIN.PLAIN;
+                            else if (rand < 0.85) terrain[y][x] = TERRAIN.FOREST;
+                            else terrain[y][x] = TERRAIN.MOUNTAIN;
+                        }
+                    }
+                }
+            } else {
+                // アルデンヌ風：密林地帯
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    terrain[y] = [];
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        const rand = Math.random();
+                        if (rand < 0.3) terrain[y][x] = TERRAIN.PLAIN;
+                        else if (rand < 0.75) terrain[y][x] = TERRAIN.FOREST;
+                        else if (rand < 0.9) terrain[y][x] = TERRAIN.MOUNTAIN;
+                        else terrain[y][x] = TERRAIN.RIVER;
+                    }
                 }
             }
 
-            // グリッド線（レトロ風）
-            ctx.strokeStyle = 'rgba(62,39,35,0.3)';
-            ctx.lineWidth = 2;
-            for (let i = 0; i <= GRID_SIZE; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * CELL_SIZE, 0);
-                ctx.lineTo(i * CELL_SIZE, canvas.height);
-                ctx.stroke();
+            return terrain;
+        }
 
-                ctx.beginPath();
-                ctx.moveTo(0, i * CELL_SIZE);
-                ctx.lineTo(canvas.width, i * CELL_SIZE);
-                ctx.stroke();
+        function createTerrainMeshes() {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const terrain = gameState.terrain[y][x];
+                    const height = TILE_HEIGHT + terrain.height;
+
+                    const geometry = new THREE.BoxGeometry(TILE_SIZE * 0.95, height, TILE_SIZE * 0.95);
+                    const material = new THREE.MeshLambertMaterial({ color: terrain.color });
+                    const mesh = new THREE.Mesh(geometry, material);
+
+                    mesh.position.set(
+                        x * TILE_SIZE,
+                        height / 2,
+                        y * TILE_SIZE
+                    );
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    mesh.userData = { type: 'terrain', x, y };
+
+                    scene.add(mesh);
+                    terrainMeshes.push(mesh);
+                }
             }
         }
 
-        function drawUnitIcon(centerX, centerY, type, size, isPlayer) {
-            ctx.save();
-            ctx.translate(centerX, centerY);
+        function createUnitMeshes() {
+            const allUnits = [...gameState.playerUnits, ...gameState.enemyUnits];
 
-            const s = size * 0.55;
-            const color = '#3e2723';
+            allUnits.forEach(unit => {
+                const terrain = gameState.terrain[unit.y][unit.x];
+                const baseHeight = TILE_HEIGHT + terrain.height;
 
-            switch(type) {
-                case 'infantry':
-                    ctx.fillStyle = color;
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.ellipse(0, -s*0.35, s*0.22, s*0.25, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillRect(-s*0.18, -s*0.1, s*0.36, s*0.45);
-                    ctx.fillRect(-s*0.28, -s*0.05, s*0.56, s*0.12);
-                    ctx.fillRect(-s*0.28, 0, s*0.12, s*0.35);
-                    ctx.fillRect(s*0.16, 0, s*0.12, s*0.35);
-                    ctx.fillRect(-s*0.12, s*0.35, s*0.1, s*0.35);
-                    ctx.fillRect(s*0.02, s*0.35, s*0.1, s*0.35);
-                    ctx.fillRect(s*0.2, -s*0.05, s*0.08, s*0.4);
-                    break;
+                let mesh;
+                if (unit.type === 'tank' || unit.type === 'heavy_tank') {
+                    const group = new THREE.Group();
 
-                case 'sniper':
-                    ctx.fillStyle = color;
-                    ctx.beginPath();
-                    ctx.ellipse(0, -s*0.35, s*0.2, s*0.23, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillRect(-s*0.16, -s*0.1, s*0.32, s*0.4);
-                    ctx.fillRect(-s*0.25, -s*0.03, s*0.5, s*0.1);
-                    ctx.fillRect(-s*0.1, s*0.3, s*0.08, s*0.25);
-                    ctx.fillRect(s*0.02, s*0.3, s*0.15, s*0.15);
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = 4;
-                    ctx.beginPath();
-                    ctx.moveTo(s*0.2, 0);
-                    ctx.lineTo(s*0.6, -s*0.25);
-                    ctx.stroke();
-                    ctx.fillRect(s*0.45, -s*0.3, s*0.08, s*0.08);
-                    break;
+                    const bodyGeo = new THREE.BoxGeometry(1.2, 0.4, 1.5);
+                    const bodyMat = new THREE.MeshLambertMaterial({ color: unit.unitColor });
+                    const body = new THREE.Mesh(bodyGeo, bodyMat);
+                    body.position.y = 0.2;
+                    body.castShadow = true;
+                    group.add(body);
 
-                case 'recon':
-                    ctx.fillStyle = color;
-                    ctx.beginPath();
-                    ctx.ellipse(0, -s*0.4, s*0.2, s*0.22, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.save();
-                    ctx.rotate(0.2);
-                    ctx.fillRect(-s*0.15, -s*0.1, s*0.3, s*0.4);
-                    ctx.restore();
-                    ctx.fillRect(-s*0.25, -s*0.15, s*0.1, s*0.3);
-                    ctx.fillRect(s*0.15, s*0.05, s*0.1, s*0.25);
-                    ctx.save();
-                    ctx.rotate(-0.3);
-                    ctx.fillRect(-s*0.08, s*0.25, s*0.08, s*0.3);
-                    ctx.restore();
-                    ctx.save();
-                    ctx.rotate(0.4);
-                    ctx.fillRect(0, s*0.2, s*0.08, s*0.3);
-                    ctx.restore();
-                    break;
+                    const turretGeo = new THREE.BoxGeometry(0.8, 0.3, 0.8);
+                    const turret = new THREE.Mesh(turretGeo, bodyMat);
+                    turret.position.y = 0.55;
+                    turret.castShadow = true;
+                    group.add(turret);
 
-                case 'medic':
-                    ctx.fillStyle = color;
-                    ctx.beginPath();
-                    ctx.ellipse(0, -s*0.35, s*0.22, s*0.25, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillRect(-s*0.18, -s*0.1, s*0.36, s*0.45);
-                    ctx.fillRect(-s*0.28, -s*0.05, s*0.56, s*0.12);
-                    ctx.fillRect(-s*0.12, s*0.35, s*0.1, s*0.35);
-                    ctx.fillRect(s*0.02, s*0.35, s*0.1, s*0.35);
-                    ctx.fillStyle = '#bf360c';
-                    ctx.fillRect(-s*0.2, -s*0.52, s*0.4, s*0.12);
-                    ctx.fillRect(-s*0.06, -s*0.6, s*0.12, s*0.28);
-                    ctx.fillStyle = color;
-                    ctx.fillRect(-s*0.35, s*0.05, s*0.15, s*0.2);
-                    break;
+                    const barrelGeo = new THREE.CylinderGeometry(0.1, 0.1, 1, 8);
+                    const barrel = new THREE.Mesh(barrelGeo, bodyMat);
+                    barrel.rotation.z = Math.PI / 2;
+                    barrel.position.set(0.5, 0.55, 0);
+                    barrel.castShadow = true;
+                    group.add(barrel);
 
-                case 'engineer':
-                    ctx.fillStyle = color;
-                    ctx.beginPath();
-                    ctx.ellipse(0, -s*0.35, s*0.22, s*0.25, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillRect(-s*0.18, -s*0.1, s*0.36, s*0.45);
-                    ctx.fillRect(-s*0.28, -s*0.05, s*0.56, s*0.12);
-                    ctx.fillRect(-s*0.12, s*0.35, s*0.1, s*0.35);
-                    ctx.fillRect(s*0.02, s*0.35, s*0.1, s*0.35);
-                    ctx.fillRect(s*0.15, s*0.1, s*0.2, s*0.15);
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(s*0.15, s*0.1, s*0.2, s*0.15);
-                    ctx.fillRect(-s*0.35, 0, s*0.12, s*0.25);
-                    ctx.fillRect(-s*0.4, s*0.22, s*0.22, s*0.08);
-                    break;
-
-                case 'tank':
-                case 'heavy_tank':
-                    ctx.fillStyle = color;
-                    ctx.fillRect(-s*0.45, -s*0.12, s*0.9, s*0.45);
-                    ctx.fillStyle = 'rgba(62,39,35,0.3)';
-                    ctx.fillRect(-s*0.45, -s*0.12, s*0.9, s*0.1);
-
-                    ctx.fillStyle = color;
-                    ctx.fillRect(-s*0.28, -s*0.35, s*0.56, s*0.35);
-                    ctx.fillStyle = 'rgba(62,39,35,0.2)';
-                    ctx.fillRect(-s*0.28, -s*0.35, s*0.56, s*0.08);
-
-                    ctx.fillStyle = color;
-                    ctx.fillRect(s*0.28, -s*0.22, s*0.5, s*0.14);
-                    ctx.fillRect(s*0.75, -s*0.25, s*0.08, s*0.2);
-
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = s*0.18;
-                    ctx.beginPath();
-                    ctx.roundRect(-s*0.5, s*0.05, s, s*0.32, s*0.08);
-                    ctx.stroke();
-
-                    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                    for(let i = 0; i < 4; i++) {
-                        ctx.beginPath();
-                        ctx.arc(-s*0.35 + i * s*0.25, s*0.21, s*0.08, 0, Math.PI * 2);
-                        ctx.fill();
+                    if (unit.type === 'heavy_tank') {
+                        const armorGeo = new THREE.BoxGeometry(1.4, 0.15, 1.7);
+                        const armor = new THREE.Mesh(armorGeo, bodyMat);
+                        armor.position.y = 0.95;
+                        armor.castShadow = true;
+                        group.add(armor);
                     }
 
-                    if (type === 'heavy_tank') {
-                        ctx.fillStyle = color;
-                        ctx.fillRect(-s*0.55, -s*0.45, s*1.1, s*0.15);
-                        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(-s*0.55, -s*0.45, s*1.1, s*0.15);
-                    }
-                    break;
+                    mesh = group;
+                } else if (unit.type === 'artillery') {
+                    const group = new THREE.Group();
 
-                case 'artillery':
-                    ctx.fillStyle = color;
-                    ctx.fillRect(-s*0.35, s*0.15, s*0.7, s*0.25);
+                    const baseGeo = new THREE.CylinderGeometry(0.4, 0.5, 0.3, 8);
+                    const baseMat = new THREE.MeshLambertMaterial({ color: unit.unitColor });
+                    const base = new THREE.Mesh(baseGeo, baseMat);
+                    base.castShadow = true;
+                    group.add(base);
 
-                    ctx.save();
-                    ctx.rotate(-Math.PI / 5);
-                    ctx.fillRect(-s*0.12, -s*0.7, s*0.24, s*0.8);
-                    ctx.fillRect(-s*0.08, -s*0.75, s*0.16, s*0.1);
-                    ctx.restore();
+                    const barrelGeo = new THREE.CylinderGeometry(0.15, 0.15, 1.5, 8);
+                    const barrel = new THREE.Mesh(barrelGeo, baseMat);
+                    barrel.rotation.z = -Math.PI / 3;
+                    barrel.position.set(0, 0.5, 0);
+                    barrel.castShadow = true;
+                    group.add(barrel);
 
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = s*0.12;
-                    ctx.beginPath();
-                    ctx.arc(-s*0.25, s*0.35, s*0.18, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.arc(s*0.25, s*0.35, s*0.18, 0, Math.PI * 2);
-                    ctx.stroke();
+                    mesh = group;
+                } else {
+                    const geometry = new THREE.CylinderGeometry(0.3, 0.3, 1, 8);
+                    const material = new THREE.MeshLambertMaterial({ color: unit.unitColor });
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.castShadow = true;
+                }
 
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = 2;
-                    for(let i = 0; i < 6; i++) {
-                        const angle = (Math.PI * 2 / 6) * i;
-                        ctx.beginPath();
-                        ctx.moveTo(-s*0.25, s*0.35);
-                        ctx.lineTo(-s*0.25 + Math.cos(angle) * s*0.15, s*0.35 + Math.sin(angle) * s*0.15);
-                        ctx.stroke();
+                // 旗で色分け
+                const flagGeo = new THREE.BoxGeometry(0.1, 0.6, 0.02);
+                const flagMat = new THREE.MeshLambertMaterial({ 
+                    color: unit.isPlayer ? 0x558b2f : 0xbf360c 
+                });
+                const flag = new THREE.Mesh(flagGeo, flagMat);
+                flag.position.set(0, 1.2, 0);
+                mesh.add(flag);
 
-                        ctx.beginPath();
-                        ctx.moveTo(s*0.25, s*0.35);
-                        ctx.lineTo(s*0.25 + Math.cos(angle) * s*0.15, s*0.35 + Math.sin(angle) * s*0.15);
-                        ctx.stroke();
-                    }
-                    break;
-            }
+                mesh.position.set(
+                    unit.x * TILE_SIZE,
+                    baseHeight + 0.5,
+                    unit.y * TILE_SIZE
+                );
 
-            ctx.restore();
+                mesh.userData = { type: 'unit', unit: unit };
+                scene.add(mesh);
+                unitMeshes.set(unit.id, mesh);
+            });
         }
 
-        function drawUnit(unit) {
-            const centerX = unit.x * CELL_SIZE + CELL_SIZE / 2;
-            const centerY = unit.y * CELL_SIZE + CELL_SIZE / 2;
-            const radius = CELL_SIZE * 0.42;
-
-            // 影（レトロ風）
-            ctx.shadowColor = 'rgba(62,39,35,0.6)';
-            ctx.shadowBlur = 6;
-            ctx.shadowOffsetX = 3;
-            ctx.shadowOffsetY = 3;
-
-            // ユニット背景
-            ctx.globalAlpha = (unit.hasMoved && unit.hasAttacked) ? 0.6 : 1;
-
-            if (unit.isPlayer) {
-                ctx.fillStyle = '#558b2f';
-            } else {
-                ctx.fillStyle = '#bf360c';
-            }
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 外枠（太く）
-            ctx.shadowColor = 'transparent';
-            ctx.strokeStyle = '#3e2723';
-            ctx.lineWidth = 5;
-            ctx.stroke();
-
-            ctx.strokeStyle = unit.isPlayer ? '#7cb342' : '#d84315';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius - 3, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // ベテランマーク
-            if (unit.isVeteran()) {
-                ctx.shadowColor = 'rgba(241, 196, 15, 0.8)';
-                ctx.shadowBlur = 8;
-                ctx.fillStyle = '#ffd54f';
-                ctx.strokeStyle = '#3e2723';
-                ctx.lineWidth = 2;
-                ctx.font = 'bold 20px Arial';
-                ctx.textAlign = 'center';
-                ctx.strokeText('★', centerX + radius * 0.65, centerY - radius * 0.65);
-                ctx.fillText('★', centerX + radius * 0.65, centerY - radius * 0.65);
-                ctx.shadowColor = 'transparent';
-            }
-
-            // ユニットアイコン
-            ctx.globalAlpha = 1;
-            ctx.shadowBlur = 2;
-            ctx.shadowColor = 'rgba(62,39,35,0.5)';
-            drawUnitIcon(centerX, centerY, unit.type, CELL_SIZE, unit.isPlayer);
-            ctx.shadowColor = 'transparent';
-
-            // HPバー（レトロ風）
-            const barWidth = CELL_SIZE * 0.8;
-            const barHeight = 10;
-            const barX = centerX - barWidth / 2;
-            const barY = centerY + CELL_SIZE * 0.44;
-
-            ctx.fillStyle = '#3e2723';
-            ctx.fillRect(barX, barY, barWidth, barHeight);
-
-            const hpPercent = unit.hp / unit.maxHp;
-            if (hpPercent > 0.5) {
-                ctx.fillStyle = '#689f38';
-            } else if (hpPercent > 0.3) {
-                ctx.fillStyle = '#fbc02d';
-            } else {
-                ctx.fillStyle = '#d32f2f';
-            }
-            ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
-
-            ctx.strokeStyle = '#3e2723';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(barX, barY, barWidth, barHeight);
+        function clearIndicators() {
+            moveIndicators.forEach(mesh => scene.remove(mesh));
+            attackIndicators.forEach(mesh => scene.remove(mesh));
+            moveIndicators = [];
+            attackIndicators = [];
         }
 
-        function drawMoveRange(unit) {
-            ctx.globalAlpha = 0.35;
+        function showMoveRange(unit) {
+            clearIndicators();
+
             const visited = new Set();
             const queue = [{x: unit.x, y: unit.y, cost: 0}];
 
@@ -1315,8 +1081,21 @@
 
                 if (x !== unit.x || y !== unit.y) {
                     if (!getUnitAt(x, y)) {
-                        ctx.fillStyle = 'rgba(129, 199, 132, 0.7)';
-                        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                        const terrain = gameState.terrain[y][x];
+                        const height = TILE_HEIGHT + terrain.height;
+
+                        const geo = new THREE.PlaneGeometry(TILE_SIZE * 0.9, TILE_SIZE * 0.9);
+                        const mat = new THREE.MeshBasicMaterial({ 
+                            color: 0x81c784, 
+                            transparent: true, 
+                            opacity: 0.5,
+                            side: THREE.DoubleSide
+                        });
+                        const mesh = new THREE.Mesh(geo, mat);
+                        mesh.rotation.x = -Math.PI / 2;
+                        mesh.position.set(x * TILE_SIZE, height + 0.05, y * TILE_SIZE);
+                        scene.add(mesh);
+                        moveIndicators.push(mesh);
                     }
                 }
 
@@ -1333,11 +1112,9 @@
                     }
                 }
             }
-            ctx.globalAlpha = 1;
         }
 
-        function drawAttackRange(unit) {
-            ctx.globalAlpha = 0.45;
+        function showAttackRange(unit) {
             for (let dx = -unit.attackRange; dx <= unit.attackRange; dx++) {
                 for (let dy = -unit.attackRange; dy <= unit.attackRange; dy++) {
                     const dist = Math.abs(dx) + Math.abs(dy);
@@ -1347,49 +1124,182 @@
                         if (isValidPosition(newX, newY)) {
                             const targetUnit = getUnitAt(newX, newY);
                             if (targetUnit && targetUnit.isPlayer !== unit.isPlayer) {
-                                ctx.fillStyle = 'rgba(211, 47, 47, 0.8)';
-                                ctx.fillRect(newX * CELL_SIZE, newY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                                const terrain = gameState.terrain[newY][newX];
+                                const height = TILE_HEIGHT + terrain.height;
+
+                                const geo = new THREE.PlaneGeometry(TILE_SIZE * 0.9, TILE_SIZE * 0.9);
+                                const mat = new THREE.MeshBasicMaterial({ 
+                                    color: 0xe57373, 
+                                    transparent: true, 
+                                    opacity: 0.6,
+                                    side: THREE.DoubleSide
+                                });
+                                const mesh = new THREE.Mesh(geo, mat);
+                                mesh.rotation.x = -Math.PI / 2;
+                                mesh.position.set(newX * TILE_SIZE, height + 0.06, newY * TILE_SIZE);
+                                scene.add(mesh);
+                                attackIndicators.push(mesh);
                             }
                         }
                     }
                 }
             }
-            ctx.globalAlpha = 1;
         }
 
-        function drawSelection(unit) {
-            ctx.strokeStyle = '#ffd54f';
-            ctx.lineWidth = 6;
-            ctx.setLineDash([12, 6]);
-            const offset = 3;
-            ctx.strokeRect(
-                unit.x * CELL_SIZE + offset, 
-                unit.y * CELL_SIZE + offset, 
-                CELL_SIZE - offset * 2, 
-                CELL_SIZE - offset * 2
+        function updateUnitMeshPosition(unit) {
+            const mesh = unitMeshes.get(unit.id);
+            if (mesh) {
+                const terrain = gameState.terrain[unit.y][unit.x];
+                const baseHeight = TILE_HEIGHT + terrain.height;
+                mesh.position.set(
+                    unit.x * TILE_SIZE,
+                    baseHeight + 0.5,
+                    unit.y * TILE_SIZE
+                );
+            }
+        }
+
+        function removeUnitMesh(unit) {
+            const mesh = unitMeshes.get(unit.id);
+            if (mesh) {
+                scene.remove(mesh);
+                unitMeshes.delete(unit.id);
+            }
+        }
+
+        // マウスイベント
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        function onMouseDown(event) {
+            if (event.button === 0) {
+                isDragging = true;
+                previousMousePosition = { x: event.clientX, y: event.clientY };
+            }
+        }
+
+        function onMouseMove(event) {
+            if (isDragging) {
+                const deltaX = event.clientX - previousMousePosition.x;
+                const deltaY = event.clientY - previousMousePosition.y;
+
+                const center = new THREE.Vector3(
+                    GRID_SIZE * TILE_SIZE / 2, 
+                    0, 
+                    GRID_SIZE * TILE_SIZE / 2
+                );
+
+                const offset = new THREE.Vector3().subVectors(camera.position, center);
+
+                const spherical = new THREE.Spherical().setFromVector3(offset);
+                spherical.theta -= deltaX * 0.01;
+                spherical.phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, spherical.phi - deltaY * 0.01));
+
+                offset.setFromSpherical(spherical);
+                camera.position.copy(center).add(offset);
+                camera.lookAt(center);
+
+                previousMousePosition = { x: event.clientX, y: event.clientY };
+            }
+        }
+
+        function onMouseUp(event) {
+            if (event.button === 0) {
+                isDragging = false;
+            } else if (event.button === 2) {
+                handleRightClick(event);
+            }
+        }
+
+        function onWheel(event) {
+            event.preventDefault();
+            const center = new THREE.Vector3(
+                GRID_SIZE * TILE_SIZE / 2, 
+                0, 
+                GRID_SIZE * TILE_SIZE / 2
             );
-            ctx.setLineDash([]);
+            const direction = new THREE.Vector3().subVectors(camera.position, center).normalize();
+            const distance = camera.position.distanceTo(center);
+            const delta = event.deltaY > 0 ? 1 : -1;
+            const newDistance = Math.max(10, Math.min(40, distance + delta));
+            camera.position.copy(center).add(direction.multiplyScalar(newDistance));
         }
 
-        function drawGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawTerrain();
+        function handleRightClick(event) {
+            if (gameState.gameOver || gameState.turn !== 'player') return;
 
-            if (gameState.selectedUnit && !gameState.selectedUnit.hasMoved) {
-                drawMoveRange(gameState.selectedUnit);
-            }
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-            if (gameState.selectedUnit && !gameState.selectedUnit.hasAttacked) {
-                drawAttackRange(gameState.selectedUnit);
-            }
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects([...terrainMeshes, ...Array.from(unitMeshes.values())], true);
 
-            [...gameState.playerUnits, ...gameState.enemyUnits].forEach(drawUnit);
+            if (intersects.length > 0) {
+                let clickedObject = intersects[0].object;
+                while (clickedObject.parent && !clickedObject.userData.type) {
+                    clickedObject = clickedObject.parent;
+                }
 
-            if (gameState.selectedUnit) {
-                drawSelection(gameState.selectedUnit);
+                if (clickedObject.userData.type === 'unit') {
+                    const unit = clickedObject.userData.unit;
+                    if (unit.isPlayer) {
+                        gameState.selectedUnit = unit;
+                        selectedUnitMesh = unitMeshes.get(unit.id);
+                        if (!unit.hasMoved) showMoveRange(unit);
+                        if (!unit.hasAttacked) showAttackRange(unit);
+                        updateUI();
+                    } else if (gameState.selectedUnit && !gameState.selectedUnit.hasAttacked) {
+                        const dist = distance(gameState.selectedUnit.x, gameState.selectedUnit.y, unit.x, unit.y);
+                        if (dist > 0 && dist <= gameState.selectedUnit.attackRange) {
+                            attackUnit(gameState.selectedUnit, unit);
+                        }
+                    }
+                } else if (clickedObject.userData.type === 'terrain') {
+                    const x = clickedObject.userData.x;
+                    const y = clickedObject.userData.y;
+
+                    if (gameState.selectedUnit && !gameState.selectedUnit.hasMoved) {
+                        if (!getUnitAt(x, y) && canMoveTo(gameState.selectedUnit, x, y)) {
+                            gameState.selectedUnit.x = x;
+                            gameState.selectedUnit.y = y;
+                            gameState.selectedUnit.hasMoved = true;
+                            updateUnitMeshPosition(gameState.selectedUnit);
+                            clearIndicators();
+                            if (!gameState.selectedUnit.hasAttacked) {
+                                showAttackRange(gameState.selectedUnit);
+                            }
+                            updateUI();
+                        }
+                    }
+                }
             }
         }
 
+        function resetCamera() {
+            camera.position.set(10, 15, 10);
+            camera.lookAt(GRID_SIZE * TILE_SIZE / 2, 0, GRID_SIZE * TILE_SIZE / 2);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 選択ユニットの浮遊アニメーション
+            unitMeshes.forEach((mesh, id) => {
+                if (gameState.selectedUnit && id === gameState.selectedUnit.id) {
+                    mesh.position.y += Math.sin(Date.now() * 0.005) * 0.01;
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // ゲームロジック
         function isValidPosition(x, y) {
             return x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE;
         }
@@ -1401,37 +1311,6 @@
         function distance(x1, y1, x2, y2) {
             return Math.abs(x1 - x2) + Math.abs(y1 - y2);
         }
-
-        canvas.addEventListener('click', (e) => {
-            if (gameState.gameOver || gameState.turn !== 'player') return;
-
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
-            const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
-
-            const clickedUnit = getUnitAt(x, y);
-
-            if (clickedUnit && clickedUnit.isPlayer) {
-                gameState.selectedUnit = clickedUnit;
-                updateUI();
-                drawGame();
-            } else if (gameState.selectedUnit) {
-                const unit = gameState.selectedUnit;
-
-                if (!unit.hasMoved && !clickedUnit && canMoveTo(unit, x, y)) {
-                    unit.x = x;
-                    unit.y = y;
-                    unit.hasMoved = true;
-                    updateUI();
-                    drawGame();
-                } else if (!unit.hasAttacked && clickedUnit && !clickedUnit.isPlayer) {
-                    const dist = distance(unit.x, unit.y, x, y);
-                    if (dist > 0 && dist <= unit.attackRange) {
-                        attackUnit(unit, clickedUnit);
-                    }
-                }
-            }
-        });
 
         function canMoveTo(unit, targetX, targetY) {
             const visited = new Set();
@@ -1482,6 +1361,7 @@
                 if (index > -1) {
                     units.splice(index, 1);
                     attacker.kills++;
+                    removeUnitMesh(target);
                 }
 
                 if (gameState.enemyUnits.length === 0) {
@@ -1491,8 +1371,8 @@
                 }
             }
 
+            clearIndicators();
             updateUI();
-            drawGame();
         }
 
         function endPlayerTurn() {
@@ -1500,10 +1380,11 @@
 
             gameState.playerUnits.forEach(u => u.reset());
             gameState.selectedUnit = null;
+            selectedUnitMesh = null;
             gameState.turn = 'enemy';
             gameState.turnCount++;
+            clearIndicators();
             updateUI();
-            drawGame();
 
             document.getElementById('endTurnBtn').disabled = true;
             setTimeout(enemyTurn, 1000);
@@ -1547,46 +1428,36 @@
                     }
 
                     if (nearestPlayer) {
-                        moveTowards(enemy, nearestPlayer);
+                        const dirs = [{dx: 1, dy: 0}, {dx: -1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy: -1}];
+                        let bestMove = null;
+                        let bestDist = distance(enemy.x, enemy.y, nearestPlayer.x, nearestPlayer.y);
+
+                        for (const {dx, dy} of dirs) {
+                            const newX = enemy.x + dx;
+                            const newY = enemy.y + dy;
+
+                            if (isValidPosition(newX, newY) && !getUnitAt(newX, newY)) {
+                                const dist = distance(newX, newY, nearestPlayer.x, nearestPlayer.y);
+                                if (dist < bestDist) {
+                                    bestDist = dist;
+                                    bestMove = {x: newX, y: newY};
+                                }
+                            }
+                        }
+
+                        if (bestMove) {
+                            enemy.x = bestMove.x;
+                            enemy.y = bestMove.y;
+                            updateUnitMeshPosition(enemy);
+                        }
                     }
                 }
-
-                drawGame();
             }
 
             gameState.enemyUnits.forEach(u => u.reset());
             gameState.turn = 'player';
             document.getElementById('endTurnBtn').disabled = false;
             updateUI();
-            drawGame();
-        }
-
-        function moveTowards(unit, target) {
-            const dirs = [
-                {dx: 1, dy: 0}, {dx: -1, dy: 0},
-                {dx: 0, dy: 1}, {dx: 0, dy: -1}
-            ];
-
-            let bestMove = null;
-            let bestDist = distance(unit.x, unit.y, target.x, target.y);
-
-            for (const {dx, dy} of dirs) {
-                const newX = unit.x + dx;
-                const newY = unit.y + dy;
-
-                if (isValidPosition(newX, newY) && !getUnitAt(newX, newY)) {
-                    const dist = distance(newX, newY, target.x, target.y);
-                    if (dist < bestDist) {
-                        bestDist = dist;
-                        bestMove = {x: newX, y: newY};
-                    }
-                }
-            }
-
-            if (bestMove) {
-                unit.x = bestMove.x;
-                unit.y = bestMove.y;
-            }
         }
 
         function updateUI() {
@@ -1600,10 +1471,6 @@
                 turnStatus.classList.add('enemy-turn');
             }
 
-            updateUnitsDisplay();
-        }
-
-        function updateUnitsDisplay() {
             const display = document.getElementById('unitsDisplay');
             display.innerHTML = '';
 
@@ -1636,8 +1503,11 @@
                 card.onclick = () => {
                     if (gameState.turn === 'player' && !gameState.gameOver) {
                         gameState.selectedUnit = unit;
+                        selectedUnitMesh = unitMeshes.get(unit.id);
+                        clearIndicators();
+                        if (!unit.hasMoved) showMoveRange(unit);
+                        if (!unit.hasAttacked) showAttackRange(unit);
                         updateUI();
-                        drawGame();
                     }
                 };
 
@@ -1671,35 +1541,6 @@
             document.getElementById('gameOverlay').style.display = 'none';
             initGame();
         }
-
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
-            const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
-
-            if (isValidPosition(x, y)) {
-                const terrain = gameState.terrain[y][x];
-                const unit = getUnitAt(x, y);
-                const tooltip = document.getElementById('tooltip');
-
-                let text = `${terrain.name}`;
-                if (terrain.defense !== 0) {
-                    text += ` (DEF ${terrain.defense > 0 ? '+' : ''}${terrain.defense*100}%)`;
-                }
-                if (unit) {
-                    text += `<br>${unit.getName()} HP:${unit.hp}/${unit.maxHp}`;
-                }
-
-                tooltip.innerHTML = text;
-                tooltip.style.display = 'block';
-                tooltip.style.left = (e.clientX + 15) + 'px';
-                tooltip.style.top = (e.clientY + 15) + 'px';
-            }
-        });
-
-        canvas.addEventListener('mouseleave', () => {
-            document.getElementById('tooltip').style.display = 'none';
-        });
     </script>
 </body>
 </html>
