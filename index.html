@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPERATION OVERLORD - 1944</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+
+        body {
+            background: linear-gradient(135deg, #3e2723 0%, #4e342e 50%, #5d4037 100%);
+            font-family: 'Courier New', 'Special Elite', monospace;
+            color: #3e2723;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #startScreen {
+            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
+            padding: 50px;
+            border-radius: 5px;
+            border: 8px solid #4e342e;
+            box-shadow: 
+                0 0 0 3px #d7ccc8,
+                0 20px 60px rgba(0,0,0,0.5),
+                inset 0 0 50px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+            position: relative;
+            z-index: 2;
+        }
+
+        #startScreen::before {
+            content: '★';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px;
+            color: #bf360c;
+        }
+
+        #startScreen h1 {
+            font-size: 42px;
+            color: #bf360c;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+            letter-spacing: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        #startScreen .subtitle {
+            color: #5d4037;
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        #startScreen .year {
+            font-size: 64px;
+            color: #3e2723;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 3px 3px 0px rgba(191, 54, 12, 0.3);
+        }
+
+        .difficulty-select {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .difficulty-option {
+            background: linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%);
+            padding: 20px;
+            border: 4px solid #6d4c41;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .difficulty-option::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(109, 76, 65, 0.3);
+            pointer-events: none;
+        }
+
+        .difficulty-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            border-color: #bf360c;
+        }
+
+        .difficulty-option.selected {
+            border-color: #bf360c;
+            background: linear-gradient(135deg, #ffccbc 0%, #ffab91 100%);
+            box-shadow: 0 8px 16px rgba(191, 54, 12, 0.4);
+        }
+
+        .difficulty-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3e2723;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .difficulty-desc {
+            font-size: 14px;
+            color: #5d4037;
+        }
+
+        #gameContainer {
+            display: grid;
+            grid-template-columns: 650px 340px;
+            gap: 20px;
+            max-width: 1020px;
+            display: none;
+            position: relative;
+            z-index: 2;
+        }
+
+        #leftPanel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #header {
+            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
+            padding: 20px;
+            border: 6px solid #4e342e;
+            box-shadow: 
+                0 0 0 2px #d7ccc8,
+                0 8px 24px rgba(0,0,0,0.4),
+                inset 0 0 30px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        #header::before {
+            content: '★';
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 24px;
+            color: #bf360c;
+        }
+
+        #header::after {
+            content: '★';
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 24px;
+            color: #bf360c;
+        }
+
+        h1 {
+            font-size: 26px;
+            color: #bf360c;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        #subtitle {
+            color: #5d4037;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        #canvasWrapper {
+            position: relative;
+            background: #3e2723;
+            padding: 10px;
+            border: 6px solid #4e342e;
+            box-shadow: 
+                0 0 0 2px #d7ccc8,
+                0 10px 40px rgba(0,0,0,0.5),
+                inset 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: crosshair;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        #rightPanel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 750px;
+            overflow-y: auto;
+        }
+
+        #rightPanel::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #rightPanel::-webkit-scrollbar-track {
+            background: #3e2723;
+        }
+
+        #rightPanel::-webkit-scrollbar-thumb {
+            background: #6d4c41;
+            border: 2px solid #3e2723;
+        }
+
+        .panel {
+            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
+            padding: 15px;
+            border: 5px solid #4e342e;
+            box-shadow: 
+                0 0 0 2px #d7ccc8,
+                0 8px 24px rgba(0,0,0,0.4),
+                inset 0 0 30px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(109, 76, 65, 0.2);
+            pointer-events: none;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #bf360c;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 3px double #4e342e;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #turnStatus {
+            text-align: center;
+            padding: 18px;
+            font-size: 20px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
+            border: 4px solid #2e7d32;
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
+            color: #1b5e20;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        #turnStatus::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        #turnStatus.enemy-turn {
+            background: linear-gradient(135deg, #e57373 0%, #ef5350 100%);
+            border-color: #c62828;
+            box-shadow: 0 6px 20px rgba(198, 40, 40, 0.4);
+            color: #b71c1c;
+        }
+
+        .unit-card {
+            background: linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%);
+            padding: 10px;
+            margin: 8px 0;
+            border: 3px solid #6d4c41;
+            transition: all 0.3s;
+            font-size: 13px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .unit-card::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1px solid rgba(109, 76, 65, 0.2);
+            pointer-events: none;
+        }
+
+        .unit-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(109, 76, 65, 0.4);
+            cursor: pointer;
+        }
+
+        .unit-card.selected {
+            border-color: #bf360c;
+            background: linear-gradient(135deg, #ffccbc 0%, #ffab91 100%);
+            box-shadow: 0 5px 20px rgba(191, 54, 12, 0.5);
+        }
+
+        .unit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .unit-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: #3e2723;
+        }
+
+        .hp-bar-container {
+            background: #3e2723;
+            height: 10px;
+            border: 2px solid #4e342e;
+            overflow: hidden;
+            margin: 6px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .hp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #689f38 0%, #7cb342 100%);
+            transition: width 0.3s, background 0.3s;
+            box-shadow: inset 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .hp-bar.low {
+            background: linear-gradient(90deg, #d32f2f 0%, #e53935 100%);
+        }
+
+        .unit-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            font-size: 11px;
+            color: #3e2723;
+            margin-top: 6px;
+        }
+
+        .stat {
+            background: rgba(62, 39, 35, 0.1);
+            padding: 3px 6px;
+            border: 1px solid #6d4c41;
+        }
+
+        .stat-label {
+            color: #5d4037;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 10px;
+            font-weight: bold;
+            border: 2px solid;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-badge.ready {
+            background: #81c784;
+            color: #1b5e20;
+            border-color: #2e7d32;
+        }
+
+        .status-badge.done {
+            background: #bdbdbd;
+            color: #424242;
+            border-color: #616161;
+        }
+
+        .status-badge.veteran {
+            background: #ffd54f;
+            color: #f57f17;
+            border-color: #f9a825;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #6d4c41 0%, #5d4037 100%);
+            color: #efebe9;
+            border: 4px solid #3e2723;
+            padding: 16px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1px solid rgba(239, 235, 233, 0.2);
+            pointer-events: none;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            background: linear-gradient(135deg, #5d4037 0%, #4e342e 100%);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: linear-gradient(135deg, #8d6e63 0%, #795548 100%);
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.6;
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #bf360c 0%, #d84315 100%);
+            border-color: #3e2723;
+        }
+
+        button.secondary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #d84315 0%, #bf360c 100%);
+        }
+
+        button.success {
+            background: linear-gradient(135deg, #558b2f 0%, #689f38 100%);
+            border-color: #33691e;
+        }
+
+        button.success:hover:not(:disabled) {
+            background: linear-gradient(135deg, #689f38 0%, #7cb342 100%);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: rgba(62, 39, 35, 0.1);
+            border: 2px solid #6d4c41;
+            margin: 6px 0;
+            font-size: 12px;
+            color: #3e2723;
+        }
+
+        .terrain-legend {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #3e2723;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #gameOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(62, 39, 35, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #gameOverContent {
+            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
+            padding: 60px;
+            border: 10px solid #4e342e;
+            text-align: center;
+            box-shadow: 
+                0 0 0 3px #d7ccc8,
+                0 20px 60px rgba(0,0,0,0.8),
+                inset 0 0 50px rgba(0,0,0,0.1);
+            animation: slideIn 0.5s;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        #gameOverContent.win {
+            border-color: #2e7d32;
+        }
+
+        #gameOverContent::before {
+            content: '★ ★ ★';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: #bf360c;
+            letter-spacing: 20px;
+        }
+
+        #gameOverText {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #3e2723;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        #scoreDisplay {
+            font-size: 18px;
+            color: #5d4037;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%);
+            color: #3e2723;
+            padding: 10px 15px;
+            border: 3px solid #4e342e;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            font-weight: bold;
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: rgba(191, 54, 12, 0.2);
+            padding: 6px 12px;
+            border: 2px solid #bf360c;
+            font-size: 12px;
+            margin: 8px 5px 5px 0;
+            font-weight: bold;
+            color: #3e2723;
+        }
+
+        .rivet {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #3e2723 0%, #6d4c41 100%);
+            border-radius: 50%;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h1>OPERATION OVERLORD</h1>
+        <div class="subtitle">TACTICAL WARFARE</div>
+        <div class="year">1944</div>
+
+        <div class="difficulty-select">
+            <div class="difficulty-option selected" data-difficulty="easy">
+                <div class="difficulty-name">★ PRIVATE</div>
+                <div class="difficulty-desc">ノルマンディー上陸作戦 | 敵6体 | 初級兵士</div>
+            </div>
+            <div class="difficulty-option" data-difficulty="normal">
+                <div class="difficulty-name">★★ SERGEANT</div>
+                <div class="difficulty-desc">東部戦線 | 敵8体 | 熟練兵士</div>
+            </div>
+            <div class="difficulty-option" data-difficulty="hard">
+                <div class="difficulty-name">★★★ CAPTAIN</div>
+                <div class="difficulty-desc">アルデンヌの戦い | 敵10体 | 精鋭部隊</div>
+            </div>
+        </div>
+
+        <button class="success" onclick="startGame()" style="width: 100%; font-size: 20px; padding: 20px;">DEPLOY FORCES</button>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+
+    <div id="gameContainer">
+        <div id="leftPanel">
+            <div id="header">
+                <h1>OPERATION OVERLORD</h1>
+                <div id="subtitle">TACTICAL WARFARE - 1944</div>
+                <div id="difficultyBadge" class="info-badge"></div>
+            </div>
+
+            <div id="canvasWrapper">
+                <canvas id="gameCanvas" width="630" height="630"></canvas>
+            </div>
+        </div>
+
+        <div id="rightPanel">
+            <div class="panel">
+                <div id="turnStatus">ALLIED TURN</div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">ALLIED FORCES</div>
+                <div id="unitsDisplay"></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">TERRAIN INTEL</div>
+                <div class="legend-item">
+                    <div class="terrain-legend" style="background: #c5e1a5;"></div>
+                    <span>平地 (移動1)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="terrain-legend" style="background: #558b2f;"></div>
+                    <span>森林 (移動2, 防御+30%)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="terrain-legend" style="background: #8d6e63;"></div>
+                    <span>山岳 (移動3, 防御+50%)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="terrain-legend" style="background: #64b5f6;"></div>
+                    <span>河川 (移動4, 防御+20%)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="terrain-legend" style="background: #ffe082;"></div>
+                    <span>砂浜 (移動2, 防御-10%)</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="controls">
+                    <button id="endTurnBtn" class="success" onclick="endPlayerTurn()">END TURN</button>
+                    <button class="secondary" onclick="backToMenu()">RETREAT</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gameOverlay">
+        <div id="gameOverContent">
+            <div id="gameOverText">VICTORY!</div>
+            <div id="scoreDisplay"></div>
+            <button class="success" onclick="restartGame()" style="font-size: 18px; padding: 20px 40px; margin-right: 10px;">REDEPLOY</button>
+            <button class="secondary" onclick="backToMenu()" style="font-size: 18px; padding: 20px 40px;">HEADQUARTERS</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const GRID_SIZE = 10;
+        const CELL_SIZE = canvas.width / GRID_SIZE;
+
+        const TERRAIN = {
+            PLAIN: { name: '平地', moveCost: 1, defense: 0, color: '#c5e1a5', darkColor: '#aed581' },
+            FOREST: { name: '森林', moveCost: 2, defense: 0.3, color: '#558b2f', darkColor: '#33691e' },
+            MOUNTAIN: { name: '山岳', moveCost: 3, defense: 0.5, color: '#8d6e63', darkColor: '#6d4c41' },
+            RIVER: { name: '河川', moveCost: 4, defense: 0.2, color: '#64b5f6', darkColor: '#42a5f5' },
+            BEACH: { name: '砂浜', moveCost: 2, defense: -0.1, color: '#ffe082', darkColor: '#ffd54f' }
+        };
+
+        let selectedDifficulty = 'easy';
+        let gameState = {
+            turn: 'player',
+            selectedUnit: null,
+            playerUnits: [],
+            enemyUnits: [],
+            gameOver: false,
+            turnCount: 0,
+            terrain: [],
+            difficulty: 'easy'
+        };
+
+        document.querySelectorAll('.difficulty-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.difficulty-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedDifficulty = this.dataset.difficulty;
+            });
+        });
+
+        class Unit {
+            constructor(x, y, type, isPlayer) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.isPlayer = isPlayer;
+                this.setupStats();
+                this.hasMoved = false;
+                this.hasAttacked = false;
+                this.kills = 0;
+                this.id = Math.random().toString(36).substr(2, 9);
+            }
+
+            setupStats() {
+                const stats = {
+                    'infantry': { hp: 100, move: 3, attackRange: 2, attack: 30, name: '歩兵' },
+                    'tank': { hp: 180, move: 2, attackRange: 3, attack: 45, name: '戦車' },
+                    'artillery': { hp: 120, move: 2, attackRange: 5, attack: 40, name: '砲兵' },
+                    'sniper': { hp: 80, move: 2, attackRange: 6, attack: 60, name: '狙撃兵' },
+                    'heavy_tank': { hp: 250, move: 1, attackRange: 3, attack: 55, name: '重戦車' },
+                    'recon': { hp: 70, move: 4, attackRange: 2, attack: 20, name: '偵察兵' },
+                    'medic': { hp: 90, move: 3, attackRange: 1, attack: 15, name: '衛生兵' },
+                    'engineer': { hp: 85, move: 2, attackRange: 2, attack: 25, name: '工兵' }
+                };
+
+                const s = stats[this.type];
+                this.hp = s.hp;
+                this.maxHp = s.hp;
+                this.moveRange = s.move;
+                this.attackRange = s.attackRange;
+                this.attackPower = s.attack;
+                this.unitName = s.name;
+            }
+
+            getName() {
+                const prefix = this.isPlayer ? '味方' : '敵';
+                const suffix = this.isVeteran() ? ' ★' : '';
+                return prefix + this.unitName + suffix;
+            }
+
+            isVeteran() {
+                return this.kills >= 2;
+            }
+
+            reset() {
+                this.hasMoved = false;
+                this.hasAttacked = false;
+            }
+        }
+
+        // 戦場風マップ生成
+        function generateBattlefieldMap(difficulty) {
+            const terrain = [];
+
+            if (difficulty === 'easy') {
+                // ノルマンディー風：海岸線
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    terrain[y] = [];
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        if (y <= 1) {
+                            // 海岸線
+                            terrain[y][x] = TERRAIN.BEACH;
+                        } else if (y >= 7) {
+                            // 内陸部（平地多め）
+                            terrain[y][x] = Math.random() < 0.7 ? TERRAIN.PLAIN : TERRAIN.FOREST;
+                        } else if (y <= 3) {
+                            // 崖・丘陵
+                            terrain[y][x] = Math.random() < 0.6 ? TERRAIN.MOUNTAIN : TERRAIN.FOREST;
+                        } else {
+                            // 中間地帯
+                            const rand = Math.random();
+                            if (rand < 0.5) terrain[y][x] = TERRAIN.PLAIN;
+                            else if (rand < 0.8) terrain[y][x] = TERRAIN.FOREST;
+                            else terrain[y][x] = TERRAIN.MOUNTAIN;
+                        }
+                    }
+                }
+            } else if (difficulty === 'normal') {
+                // 東部戦線風：広大な平原と点在する森
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    terrain[y] = [];
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        // 川が斜めに横断
+                        if (Math.abs(x - y) <= 1 && x >= 3 && x <= 6) {
+                            terrain[y][x] = TERRAIN.RIVER;
+                        } else {
+                            const rand = Math.random();
+                            if (rand < 0.6) terrain[y][x] = TERRAIN.PLAIN;
+                            else if (rand < 0.85) terrain[y][x] = TERRAIN.FOREST;
+                            else terrain[y][x] = TERRAIN.MOUNTAIN;
+                        }
+                    }
+                }
+            } else {
+                // アルデンヌ風：密林地帯
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    terrain[y] = [];
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        const rand = Math.random();
+                        if (rand < 0.3) terrain[y][x] = TERRAIN.PLAIN;
+                        else if (rand < 0.75) terrain[y][x] = TERRAIN.FOREST;
+                        else if (rand < 0.9) terrain[y][x] = TERRAIN.MOUNTAIN;
+                        else terrain[y][x] = TERRAIN.RIVER;
+                    }
+                }
+            }
+
+            return terrain;
+        }
+
+        function startGame() {
+            gameState.difficulty = selectedDifficulty;
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'grid';
+            initGame();
+        }
+
+        function backToMenu() {
+            document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('gameOverlay').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'block';
+        }
+
+        function initGame() {
+            gameState = {
+                turn: 'player',
+                selectedUnit: null,
+                playerUnits: [],
+                enemyUnits: [],
+                gameOver: false,
+                turnCount: 1,
+                terrain: generateBattlefieldMap(gameState.difficulty),
+                difficulty: gameState.difficulty
+            };
+
+            // 戦力バランス調整：味方に重戦車追加
+            const playerSetup = {
+                'easy': [
+                    new Unit(0, 9, 'infantry', true),
+                    new Unit(2, 8, 'tank', true),
+                    new Unit(4, 9, 'heavy_tank', true),  // 追加
+                    new Unit(6, 8, 'artillery', true),
+                    new Unit(8, 9, 'sniper', true),
+                    new Unit(1, 9, 'recon', true),
+                    new Unit(7, 9, 'engineer', true),
+                    new Unit(5, 8, 'infantry', true)
+                ],
+                'normal': [
+                    new Unit(0, 9, 'infantry', true),
+                    new Unit(2, 8, 'tank', true),
+                    new Unit(4, 9, 'heavy_tank', true),  // 追加
+                    new Unit(6, 8, 'artillery', true),
+                    new Unit(8, 9, 'sniper', true),
+                    new Unit(1, 9, 'recon', true),
+                    new Unit(7, 9, 'engineer', true),
+                    new Unit(5, 8, 'medic', true),
+                    new Unit(3, 9, 'infantry', true)
+                ],
+                'hard': [
+                    new Unit(0, 9, 'infantry', true),
+                    new Unit(2, 8, 'heavy_tank', true),  // 追加
+                    new Unit(4, 9, 'heavy_tank', true),  // 追加
+                    new Unit(6, 8, 'artillery', true),
+                    new Unit(8, 9, 'sniper', true),
+                    new Unit(1, 9, 'recon', true),
+                    new Unit(7, 9, 'tank', true),
+                    new Unit(5, 8, 'medic', true),
+                    new Unit(3, 9, 'infantry', true),
+                    new Unit(9, 8, 'engineer', true)
+                ]
+            };
+
+            const enemySetup = {
+                'easy': [
+                    new Unit(1, 0, 'infantry', false),
+                    new Unit(3, 1, 'tank', false),
+                    new Unit(5, 0, 'artillery', false),
+                    new Unit(7, 1, 'sniper', false),
+                    new Unit(9, 0, 'recon', false),
+                    new Unit(4, 1, 'infantry', false)
+                ],
+                'normal': [
+                    new Unit(1, 0, 'infantry', false),
+                    new Unit(3, 1, 'heavy_tank', false),
+                    new Unit(5, 0, 'artillery', false),
+                    new Unit(7, 1, 'tank', false),
+                    new Unit(9, 0, 'sniper', false),
+                    new Unit(0, 1, 'recon', false),
+                    new Unit(6, 0, 'infantry', false),
+                    new Unit(2, 0, 'engineer', false)
+                ],
+                'hard': [
+                    new Unit(1, 0, 'infantry', false),
+                    new Unit(3, 1, 'heavy_tank', false),
+                    new Unit(5, 0, 'artillery', false),
+                    new Unit(7, 1, 'tank', false),
+                    new Unit(9, 0, 'sniper', false),
+                    new Unit(0, 1, 'recon', false),
+                    new Unit(6, 0, 'infantry', false),
+                    new Unit(2, 0, 'heavy_tank', false),
+                    new Unit(8, 1, 'artillery', false),
+                    new Unit(4, 0, 'sniper', false)
+                ]
+            };
+
+            gameState.playerUnits = playerSetup[gameState.difficulty];
+            gameState.enemyUnits = enemySetup[gameState.difficulty];
+
+            const difficultyNames = {
+                'easy': '★ PRIVATE - ノルマンディー',
+                'normal': '★★ SERGEANT - 東部戦線',
+                'hard': '★★★ CAPTAIN - アルデンヌ'
+            };
+            document.getElementById('difficultyBadge').textContent = difficultyNames[gameState.difficulty];
+
+            document.getElementById('gameOverlay').style.display = 'none';
+            updateUI();
+            drawGame();
+        }
+
+        function drawTerrain() {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const terrain = gameState.terrain[y][x];
+
+                    // 地形グラデーション
+                    const gradient = ctx.createLinearGradient(
+                        x * CELL_SIZE, y * CELL_SIZE,
+                        (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE
+                    );
+                    gradient.addColorStop(0, terrain.color);
+                    gradient.addColorStop(1, terrain.darkColor);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+                    // 地形テクスチャ
+                    ctx.save();
+                    ctx.globalAlpha = 0.2;
+
+                    if (terrain === TERRAIN.FOREST) {
+                        for (let i = 0; i < 4; i++) {
+                            const tx = x * CELL_SIZE + Math.random() * CELL_SIZE;
+                            const ty = y * CELL_SIZE + Math.random() * CELL_SIZE;
+                            ctx.fillStyle = '#1b5e20';
+                            ctx.beginPath();
+                            ctx.arc(tx, ty, 4, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    } else if (terrain === TERRAIN.MOUNTAIN) {
+                        ctx.strokeStyle = '#4e342e';
+                        ctx.lineWidth = 1.5;
+                        for (let i = 0; i < 3; i++) {
+                            ctx.beginPath();
+                            ctx.arc(
+                                x * CELL_SIZE + CELL_SIZE / 2,
+                                y * CELL_SIZE + CELL_SIZE / 2,
+                                8 + i * 6, 0, Math.PI * 2
+                            );
+                            ctx.stroke();
+                        }
+                    } else if (terrain === TERRAIN.RIVER) {
+                        ctx.strokeStyle = '#0d47a1';
+                        ctx.lineWidth = 2;
+                        for (let i = 0; i < 2; i++) {
+                            ctx.beginPath();
+                            ctx.moveTo(x * CELL_SIZE, y * CELL_SIZE + i * 25);
+                            ctx.bezierCurveTo(
+                                x * CELL_SIZE + CELL_SIZE / 4, y * CELL_SIZE + i * 25 + 6,
+                                x * CELL_SIZE + CELL_SIZE * 3 / 4, y * CELL_SIZE + i * 25 - 6,
+                                (x + 1) * CELL_SIZE, y * CELL_SIZE + i * 25
+                            );
+                            ctx.stroke();
+                        }
+                    } else if (terrain === TERRAIN.BEACH) {
+                        ctx.fillStyle = '#f57f17';
+                        for (let i = 0; i < 8; i++) {
+                            const tx = x * CELL_SIZE + Math.random() * CELL_SIZE;
+                            const ty = y * CELL_SIZE + Math.random() * CELL_SIZE;
+                            ctx.fillRect(tx, ty, 2, 2);
+                        }
+                    } else {
+                        ctx.fillStyle = '#689f38';
+                        for (let i = 0; i < 6; i++) {
+                            const tx = x * CELL_SIZE + Math.random() * CELL_SIZE;
+                            const ty = y * CELL_SIZE + Math.random() * CELL_SIZE;
+                            ctx.fillRect(tx, ty, 2, 2);
+                        }
+                    }
+
+                    ctx.restore();
+
+                    // ビネット効果
+                    ctx.fillStyle = 'rgba(62,39,35,' + (Math.random() * 0.08) + ')';
+                    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                }
+            }
+
+            // グリッド線（レトロ風）
+            ctx.strokeStyle = 'rgba(62,39,35,0.3)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i <= GRID_SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * CELL_SIZE, 0);
+                ctx.lineTo(i * CELL_SIZE, canvas.height);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, i * CELL_SIZE);
+                ctx.lineTo(canvas.width, i * CELL_SIZE);
+                ctx.stroke();
+            }
+        }
+
+        function drawUnitIcon(centerX, centerY, type, size, isPlayer) {
+            ctx.save();
+            ctx.translate(centerX, centerY);
+
+            const s = size * 0.55;
+            const color = '#3e2723';
+
+            switch(type) {
+                case 'infantry':
+                    ctx.fillStyle = color;
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.ellipse(0, -s*0.35, s*0.22, s*0.25, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillRect(-s*0.18, -s*0.1, s*0.36, s*0.45);
+                    ctx.fillRect(-s*0.28, -s*0.05, s*0.56, s*0.12);
+                    ctx.fillRect(-s*0.28, 0, s*0.12, s*0.35);
+                    ctx.fillRect(s*0.16, 0, s*0.12, s*0.35);
+                    ctx.fillRect(-s*0.12, s*0.35, s*0.1, s*0.35);
+                    ctx.fillRect(s*0.02, s*0.35, s*0.1, s*0.35);
+                    ctx.fillRect(s*0.2, -s*0.05, s*0.08, s*0.4);
+                    break;
+
+                case 'sniper':
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.ellipse(0, -s*0.35, s*0.2, s*0.23, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillRect(-s*0.16, -s*0.1, s*0.32, s*0.4);
+                    ctx.fillRect(-s*0.25, -s*0.03, s*0.5, s*0.1);
+                    ctx.fillRect(-s*0.1, s*0.3, s*0.08, s*0.25);
+                    ctx.fillRect(s*0.02, s*0.3, s*0.15, s*0.15);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(s*0.2, 0);
+                    ctx.lineTo(s*0.6, -s*0.25);
+                    ctx.stroke();
+                    ctx.fillRect(s*0.45, -s*0.3, s*0.08, s*0.08);
+                    break;
+
+                case 'recon':
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.ellipse(0, -s*0.4, s*0.2, s*0.22, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.save();
+                    ctx.rotate(0.2);
+                    ctx.fillRect(-s*0.15, -s*0.1, s*0.3, s*0.4);
+                    ctx.restore();
+                    ctx.fillRect(-s*0.25, -s*0.15, s*0.1, s*0.3);
+                    ctx.fillRect(s*0.15, s*0.05, s*0.1, s*0.25);
+                    ctx.save();
+                    ctx.rotate(-0.3);
+                    ctx.fillRect(-s*0.08, s*0.25, s*0.08, s*0.3);
+                    ctx.restore();
+                    ctx.save();
+                    ctx.rotate(0.4);
+                    ctx.fillRect(0, s*0.2, s*0.08, s*0.3);
+                    ctx.restore();
+                    break;
+
+                case 'medic':
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.ellipse(0, -s*0.35, s*0.22, s*0.25, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillRect(-s*0.18, -s*0.1, s*0.36, s*0.45);
+                    ctx.fillRect(-s*0.28, -s*0.05, s*0.56, s*0.12);
+                    ctx.fillRect(-s*0.12, s*0.35, s*0.1, s*0.35);
+                    ctx.fillRect(s*0.02, s*0.35, s*0.1, s*0.35);
+                    ctx.fillStyle = '#bf360c';
+                    ctx.fillRect(-s*0.2, -s*0.52, s*0.4, s*0.12);
+                    ctx.fillRect(-s*0.06, -s*0.6, s*0.12, s*0.28);
+                    ctx.fillStyle = color;
+                    ctx.fillRect(-s*0.35, s*0.05, s*0.15, s*0.2);
+                    break;
+
+                case 'engineer':
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.ellipse(0, -s*0.35, s*0.22, s*0.25, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillRect(-s*0.18, -s*0.1, s*0.36, s*0.45);
+                    ctx.fillRect(-s*0.28, -s*0.05, s*0.56, s*0.12);
+                    ctx.fillRect(-s*0.12, s*0.35, s*0.1, s*0.35);
+                    ctx.fillRect(s*0.02, s*0.35, s*0.1, s*0.35);
+                    ctx.fillRect(s*0.15, s*0.1, s*0.2, s*0.15);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(s*0.15, s*0.1, s*0.2, s*0.15);
+                    ctx.fillRect(-s*0.35, 0, s*0.12, s*0.25);
+                    ctx.fillRect(-s*0.4, s*0.22, s*0.22, s*0.08);
+                    break;
+
+                case 'tank':
+                case 'heavy_tank':
+                    ctx.fillStyle = color;
+                    ctx.fillRect(-s*0.45, -s*0.12, s*0.9, s*0.45);
+                    ctx.fillStyle = 'rgba(62,39,35,0.3)';
+                    ctx.fillRect(-s*0.45, -s*0.12, s*0.9, s*0.1);
+
+                    ctx.fillStyle = color;
+                    ctx.fillRect(-s*0.28, -s*0.35, s*0.56, s*0.35);
+                    ctx.fillStyle = 'rgba(62,39,35,0.2)';
+                    ctx.fillRect(-s*0.28, -s*0.35, s*0.56, s*0.08);
+
+                    ctx.fillStyle = color;
+                    ctx.fillRect(s*0.28, -s*0.22, s*0.5, s*0.14);
+                    ctx.fillRect(s*0.75, -s*0.25, s*0.08, s*0.2);
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = s*0.18;
+                    ctx.beginPath();
+                    ctx.roundRect(-s*0.5, s*0.05, s, s*0.32, s*0.08);
+                    ctx.stroke();
+
+                    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                    for(let i = 0; i < 4; i++) {
+                        ctx.beginPath();
+                        ctx.arc(-s*0.35 + i * s*0.25, s*0.21, s*0.08, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    if (type === 'heavy_tank') {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(-s*0.55, -s*0.45, s*1.1, s*0.15);
+                        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(-s*0.55, -s*0.45, s*1.1, s*0.15);
+                    }
+                    break;
+
+                case 'artillery':
+                    ctx.fillStyle = color;
+                    ctx.fillRect(-s*0.35, s*0.15, s*0.7, s*0.25);
+
+                    ctx.save();
+                    ctx.rotate(-Math.PI / 5);
+                    ctx.fillRect(-s*0.12, -s*0.7, s*0.24, s*0.8);
+                    ctx.fillRect(-s*0.08, -s*0.75, s*0.16, s*0.1);
+                    ctx.restore();
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = s*0.12;
+                    ctx.beginPath();
+                    ctx.arc(-s*0.25, s*0.35, s*0.18, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(s*0.25, s*0.35, s*0.18, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    for(let i = 0; i < 6; i++) {
+                        const angle = (Math.PI * 2 / 6) * i;
+                        ctx.beginPath();
+                        ctx.moveTo(-s*0.25, s*0.35);
+                        ctx.lineTo(-s*0.25 + Math.cos(angle) * s*0.15, s*0.35 + Math.sin(angle) * s*0.15);
+                        ctx.stroke();
+
+                        ctx.beginPath();
+                        ctx.moveTo(s*0.25, s*0.35);
+                        ctx.lineTo(s*0.25 + Math.cos(angle) * s*0.15, s*0.35 + Math.sin(angle) * s*0.15);
+                        ctx.stroke();
+                    }
+                    break;
+            }
+
+            ctx.restore();
+        }
+
+        function drawUnit(unit) {
+            const centerX = unit.x * CELL_SIZE + CELL_SIZE / 2;
+            const centerY = unit.y * CELL_SIZE + CELL_SIZE / 2;
+            const radius = CELL_SIZE * 0.42;
+
+            // 影（レトロ風）
+            ctx.shadowColor = 'rgba(62,39,35,0.6)';
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
+
+            // ユニット背景
+            ctx.globalAlpha = (unit.hasMoved && unit.hasAttacked) ? 0.6 : 1;
+
+            if (unit.isPlayer) {
+                ctx.fillStyle = '#558b2f';
+            } else {
+                ctx.fillStyle = '#bf360c';
+            }
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 外枠（太く）
+            ctx.shadowColor = 'transparent';
+            ctx.strokeStyle = '#3e2723';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+
+            ctx.strokeStyle = unit.isPlayer ? '#7cb342' : '#d84315';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 3, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // ベテランマーク
+            if (unit.isVeteran()) {
+                ctx.shadowColor = 'rgba(241, 196, 15, 0.8)';
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = '#ffd54f';
+                ctx.strokeStyle = '#3e2723';
+                ctx.lineWidth = 2;
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.strokeText('★', centerX + radius * 0.65, centerY - radius * 0.65);
+                ctx.fillText('★', centerX + radius * 0.65, centerY - radius * 0.65);
+                ctx.shadowColor = 'transparent';
+            }
+
+            // ユニットアイコン
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = 2;
+            ctx.shadowColor = 'rgba(62,39,35,0.5)';
+            drawUnitIcon(centerX, centerY, unit.type, CELL_SIZE, unit.isPlayer);
+            ctx.shadowColor = 'transparent';
+
+            // HPバー（レトロ風）
+            const barWidth = CELL_SIZE * 0.8;
+            const barHeight = 10;
+            const barX = centerX - barWidth / 2;
+            const barY = centerY + CELL_SIZE * 0.44;
+
+            ctx.fillStyle = '#3e2723';
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+
+            const hpPercent = unit.hp / unit.maxHp;
+            if (hpPercent > 0.5) {
+                ctx.fillStyle = '#689f38';
+            } else if (hpPercent > 0.3) {
+                ctx.fillStyle = '#fbc02d';
+            } else {
+                ctx.fillStyle = '#d32f2f';
+            }
+            ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
+
+            ctx.strokeStyle = '#3e2723';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(barX, barY, barWidth, barHeight);
+        }
+
+        function drawMoveRange(unit) {
+            ctx.globalAlpha = 0.35;
+            const visited = new Set();
+            const queue = [{x: unit.x, y: unit.y, cost: 0}];
+
+            while (queue.length > 0) {
+                const {x, y, cost} = queue.shift();
+                const key = `${x},${y}`;
+
+                if (visited.has(key)) continue;
+                visited.add(key);
+
+                if (x !== unit.x || y !== unit.y) {
+                    if (!getUnitAt(x, y)) {
+                        ctx.fillStyle = 'rgba(129, 199, 132, 0.7)';
+                        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    }
+                }
+
+                const dirs = [[0,1], [1,0], [0,-1], [-1,0]];
+                for (const [dx, dy] of dirs) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    if (isValidPosition(nx, ny) && !visited.has(`${nx},${ny}`)) {
+                        const terrain = gameState.terrain[ny][nx];
+                        const newCost = cost + terrain.moveCost;
+                        if (newCost <= unit.moveRange) {
+                            queue.push({x: nx, y: ny, cost: newCost});
+                        }
+                    }
+                }
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function drawAttackRange(unit) {
+            ctx.globalAlpha = 0.45;
+            for (let dx = -unit.attackRange; dx <= unit.attackRange; dx++) {
+                for (let dy = -unit.attackRange; dy <= unit.attackRange; dy++) {
+                    const dist = Math.abs(dx) + Math.abs(dy);
+                    if (dist > 0 && dist <= unit.attackRange) {
+                        const newX = unit.x + dx;
+                        const newY = unit.y + dy;
+                        if (isValidPosition(newX, newY)) {
+                            const targetUnit = getUnitAt(newX, newY);
+                            if (targetUnit && targetUnit.isPlayer !== unit.isPlayer) {
+                                ctx.fillStyle = 'rgba(211, 47, 47, 0.8)';
+                                ctx.fillRect(newX * CELL_SIZE, newY * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                            }
+                        }
+                    }
+                }
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function drawSelection(unit) {
+            ctx.strokeStyle = '#ffd54f';
+            ctx.lineWidth = 6;
+            ctx.setLineDash([12, 6]);
+            const offset = 3;
+            ctx.strokeRect(
+                unit.x * CELL_SIZE + offset, 
+                unit.y * CELL_SIZE + offset, 
+                CELL_SIZE - offset * 2, 
+                CELL_SIZE - offset * 2
+            );
+            ctx.setLineDash([]);
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawTerrain();
+
+            if (gameState.selectedUnit && !gameState.selectedUnit.hasMoved) {
+                drawMoveRange(gameState.selectedUnit);
+            }
+
+            if (gameState.selectedUnit && !gameState.selectedUnit.hasAttacked) {
+                drawAttackRange(gameState.selectedUnit);
+            }
+
+            [...gameState.playerUnits, ...gameState.enemyUnits].forEach(drawUnit);
+
+            if (gameState.selectedUnit) {
+                drawSelection(gameState.selectedUnit);
+            }
+        }
+
+        function isValidPosition(x, y) {
+            return x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE;
+        }
+
+        function getUnitAt(x, y) {
+            return [...gameState.playerUnits, ...gameState.enemyUnits].find(u => u.x === x && u.y === y);
+        }
+
+        function distance(x1, y1, x2, y2) {
+            return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+        }
+
+        canvas.addEventListener('click', (e) => {
+            if (gameState.gameOver || gameState.turn !== 'player') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+
+            const clickedUnit = getUnitAt(x, y);
+
+            if (clickedUnit && clickedUnit.isPlayer) {
+                gameState.selectedUnit = clickedUnit;
+                updateUI();
+                drawGame();
+            } else if (gameState.selectedUnit) {
+                const unit = gameState.selectedUnit;
+
+                if (!unit.hasMoved && !clickedUnit && canMoveTo(unit, x, y)) {
+                    unit.x = x;
+                    unit.y = y;
+                    unit.hasMoved = true;
+                    updateUI();
+                    drawGame();
+                } else if (!unit.hasAttacked && clickedUnit && !clickedUnit.isPlayer) {
+                    const dist = distance(unit.x, unit.y, x, y);
+                    if (dist > 0 && dist <= unit.attackRange) {
+                        attackUnit(unit, clickedUnit);
+                    }
+                }
+            }
+        });
+
+        function canMoveTo(unit, targetX, targetY) {
+            const visited = new Set();
+            const queue = [{x: unit.x, y: unit.y, cost: 0}];
+
+            while (queue.length > 0) {
+                const {x, y, cost} = queue.shift();
+                const key = `${x},${y}`;
+
+                if (visited.has(key)) continue;
+                visited.add(key);
+
+                if (x === targetX && y === targetY) return true;
+
+                const dirs = [[0,1], [1,0], [0,-1], [-1,0]];
+                for (const [dx, dy] of dirs) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    if (isValidPosition(nx, ny) && !visited.has(`${nx},${ny}`) && !getUnitAt(nx, ny)) {
+                        const terrain = gameState.terrain[ny][nx];
+                        const newCost = cost + terrain.moveCost;
+                        if (newCost <= unit.moveRange) {
+                            queue.push({x: nx, y: ny, cost: newCost});
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function attackUnit(attacker, target) {
+            const terrain = gameState.terrain[target.y][target.x];
+            const defenseBonus = terrain.defense;
+            let actualDamage = Math.round(attacker.attackPower * (1 - defenseBonus));
+
+            if (gameState.difficulty === 'hard' && !attacker.isPlayer) {
+                actualDamage = Math.round(actualDamage * 1.2);
+            }
+
+            target.hp -= actualDamage;
+            attacker.hasAttacked = true;
+
+            if (target.hp <= 0) {
+                const isEnemy = !target.isPlayer;
+                const index = isEnemy ? gameState.enemyUnits.indexOf(target) : gameState.playerUnits.indexOf(target);
+                const units = isEnemy ? gameState.enemyUnits : gameState.playerUnits;
+
+                if (index > -1) {
+                    units.splice(index, 1);
+                    attacker.kills++;
+                }
+
+                if (gameState.enemyUnits.length === 0) {
+                    endGame(true);
+                } else if (gameState.playerUnits.length === 0) {
+                    endGame(false);
+                }
+            }
+
+            updateUI();
+            drawGame();
+        }
+
+        function endPlayerTurn() {
+            if (gameState.turn !== 'player' || gameState.gameOver) return;
+
+            gameState.playerUnits.forEach(u => u.reset());
+            gameState.selectedUnit = null;
+            gameState.turn = 'enemy';
+            gameState.turnCount++;
+            updateUI();
+            drawGame();
+
+            document.getElementById('endTurnBtn').disabled = true;
+            setTimeout(enemyTurn, 1000);
+        }
+
+        function enemyTurn() {
+            if (gameState.gameOver) return;
+
+            const smartAI = gameState.difficulty === 'hard';
+
+            for (const enemy of gameState.enemyUnits) {
+                let target = null;
+                let minHp = Infinity;
+
+                for (const player of gameState.playerUnits) {
+                    const dist = distance(enemy.x, enemy.y, player.x, player.y);
+                    if (dist > 0 && dist <= enemy.attackRange) {
+                        if (smartAI) {
+                            if (player.hp < minHp) {
+                                minHp = player.hp;
+                                target = player;
+                            }
+                        } else {
+                            if (!target) target = player;
+                        }
+                    }
+                }
+
+                if (target) {
+                    attackUnit(enemy, target);
+                } else {
+                    let nearestPlayer = null;
+                    let nearestDist = Infinity;
+
+                    for (const player of gameState.playerUnits) {
+                        const dist = distance(enemy.x, enemy.y, player.x, player.y);
+                        if (dist < nearestDist) {
+                            nearestDist = dist;
+                            nearestPlayer = player;
+                        }
+                    }
+
+                    if (nearestPlayer) {
+                        moveTowards(enemy, nearestPlayer);
+                    }
+                }
+
+                drawGame();
+            }
+
+            gameState.enemyUnits.forEach(u => u.reset());
+            gameState.turn = 'player';
+            document.getElementById('endTurnBtn').disabled = false;
+            updateUI();
+            drawGame();
+        }
+
+        function moveTowards(unit, target) {
+            const dirs = [
+                {dx: 1, dy: 0}, {dx: -1, dy: 0},
+                {dx: 0, dy: 1}, {dx: 0, dy: -1}
+            ];
+
+            let bestMove = null;
+            let bestDist = distance(unit.x, unit.y, target.x, target.y);
+
+            for (const {dx, dy} of dirs) {
+                const newX = unit.x + dx;
+                const newY = unit.y + dy;
+
+                if (isValidPosition(newX, newY) && !getUnitAt(newX, newY)) {
+                    const dist = distance(newX, newY, target.x, target.y);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        bestMove = {x: newX, y: newY};
+                    }
+                }
+            }
+
+            if (bestMove) {
+                unit.x = bestMove.x;
+                unit.y = bestMove.y;
+            }
+        }
+
+        function updateUI() {
+            const turnStatus = document.getElementById('turnStatus');
+
+            if (gameState.turn === 'player') {
+                turnStatus.textContent = `ALLIED TURN (${gameState.turnCount})`;
+                turnStatus.classList.remove('enemy-turn');
+            } else {
+                turnStatus.textContent = 'AXIS TURN';
+                turnStatus.classList.add('enemy-turn');
+            }
+
+            updateUnitsDisplay();
+        }
+
+        function updateUnitsDisplay() {
+            const display = document.getElementById('unitsDisplay');
+            display.innerHTML = '';
+
+            gameState.playerUnits.forEach(unit => {
+                const card = document.createElement('div');
+                card.className = 'unit-card' + (gameState.selectedUnit === unit ? ' selected' : '');
+
+                const hpPercent = (unit.hp / unit.maxHp) * 100;
+                const status = (!unit.hasMoved && !unit.hasAttacked) ? 'ready' : 'done';
+
+                card.innerHTML = `
+                    <div class="unit-header">
+                        <div class="unit-name">${unit.getName()}</div>
+                        <span class="status-badge ${status}">${status === 'ready' ? 'READY' : 'DONE'}</span>
+                    </div>
+                    <div class="hp-bar-container">
+                        <div class="hp-bar ${hpPercent <= 30 ? 'low' : ''}" style="width: ${hpPercent}%"></div>
+                    </div>
+                    <div style="font-size: 11px; color: #3e2723; margin-top: 4px; font-weight: bold;">
+                        HP: ${unit.hp}/${unit.maxHp} | KILLS: ${unit.kills}
+                    </div>
+                    <div class="unit-stats">
+                        <div class="stat"><span class="stat-label">MOVE:</span> ${unit.moveRange}</div>
+                        <div class="stat"><span class="stat-label">ATK:</span> ${unit.attackPower}</div>
+                        <div class="stat"><span class="stat-label">RNG:</span> ${unit.attackRange}</div>
+                        <div class="stat"><span class="stat-label">POS:</span> ${unit.x},${unit.y}</div>
+                    </div>
+                `;
+
+                card.onclick = () => {
+                    if (gameState.turn === 'player' && !gameState.gameOver) {
+                        gameState.selectedUnit = unit;
+                        updateUI();
+                        drawGame();
+                    }
+                };
+
+                display.appendChild(card);
+            });
+        }
+
+        function endGame(playerWin) {
+            gameState.gameOver = true;
+            const overlay = document.getElementById('gameOverlay');
+            const content = document.getElementById('gameOverContent');
+            const text = document.getElementById('gameOverText');
+            const score = document.getElementById('scoreDisplay');
+
+            if (playerWin) {
+                text.textContent = 'VICTORY!';
+                content.classList.add('win');
+                const totalKills = gameState.playerUnits.reduce((sum, u) => sum + u.kills, 0);
+                const survivors = gameState.playerUnits.length;
+                score.textContent = `TURNS: ${gameState.turnCount} | SURVIVORS: ${survivors} | KILLS: ${totalKills}`;
+            } else {
+                text.textContent = 'DEFEAT';
+                content.classList.remove('win');
+                score.textContent = `TURNS: ${gameState.turnCount}`;
+            }
+
+            overlay.style.display = 'flex';
+        }
+
+        function restartGame() {
+            document.getElementById('gameOverlay').style.display = 'none';
+            initGame();
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+            const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+
+            if (isValidPosition(x, y)) {
+                const terrain = gameState.terrain[y][x];
+                const unit = getUnitAt(x, y);
+                const tooltip = document.getElementById('tooltip');
+
+                let text = `${terrain.name}`;
+                if (terrain.defense !== 0) {
+                    text += ` (DEF ${terrain.defense > 0 ? '+' : ''}${terrain.defense*100}%)`;
+                }
+                if (unit) {
+                    text += `<br>${unit.getName()} HP:${unit.hp}/${unit.maxHp}`;
+                }
+
+                tooltip.innerHTML = text;
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY + 15) + 'px';
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            document.getElementById('tooltip').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
