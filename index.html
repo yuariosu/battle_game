@@ -500,6 +500,26 @@
             font-size: 14px;
         }
 
+        #unitDetail { display: none; }
+        #unitDetail .ud-name {
+            font-size: 15px; font-weight: bold; color: #3e2723;
+            border-bottom: 2px solid #6d4c41; padding-bottom: 6px; margin-bottom: 8px;
+        }
+        #unitDetail .ud-hp-track {
+            background: #3e2723; height: 8px;
+            border: 1px solid #4e342e; margin: 4px 0 8px;
+        }
+        #unitDetail .ud-hp-fill { height: 100%; transition: width 0.3s; }
+        #unitDetail .ud-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 4px; font-size: 11px;
+        }
+        #unitDetail .ud-cell {
+            background: rgba(62,39,35,0.1);
+            border: 1px solid #6d4c41; padding: 3px 6px;
+        }
+        #unitDetail .ud-label { color: #5d4037; font-weight: bold; }
+
         .info-badge {
             display: inline-block;
             background: rgba(191, 54, 12, 0.2);
@@ -682,16 +702,32 @@
         </div>
 
         <div id="instructions">
-            <strong>操作方法:</strong>
-            • 左クリック: 駒選択・移動・攻撃<br>
-            • 右クリック / ESC: 選択解除<br>
-            • 左ドラッグ: カメラ回転<br>
-            • ホイール: ズーム<br>
-            • SPACE / ENTER: ターン終了<br>
-            • R: カメラリセット<br>
-            <br>
-            <strong>色分け:</strong>
-            濃い茶色 = 味方 | 灰色 = 敵
+            <!-- ユニット選択時: 詳細情報 -->
+            <div id="unitDetail">
+                <div class="ud-name" id="udName">—</div>
+                <div style="font-size:11px;color:#5d4037;margin-bottom:2px;">
+                    HP: <span id="udHp">—</span>
+                </div>
+                <div class="ud-hp-track">
+                    <div class="ud-hp-fill" id="udHpFill" style="width:100%;background:#689f38"></div>
+                </div>
+                <div class="ud-grid">
+                    <div class="ud-cell"><span class="ud-label">ATK:</span> <span id="udAtk">—</span></div>
+                    <div class="ud-cell"><span class="ud-label">RNG:</span> <span id="udRng">—</span></div>
+                    <div class="ud-cell"><span class="ud-label">MOV:</span> <span id="udMov">—</span></div>
+                    <div class="ud-cell"><span class="ud-label">地形防御:</span> <span id="udDef">—</span></div>
+                </div>
+            </div>
+            <!-- 非選択時: 操作ヘルプ -->
+            <div id="keyHelp">
+                <strong>操作方法:</strong>
+                • 左クリック: 選択・移動・攻撃<br>
+                • 右クリック / ESC: 選択解除<br>
+                • ドラッグ: カメラ回転 | ホイール: ズーム<br>
+                • SPACE: ターン終了 | R: カメラリセット<br>
+                <strong style="margin-top:6px;">色:</strong>
+                緑=移動 | 橙=射程 | 赤=攻撃 | 青=回復
+            </div>
         </div>
     </div>
 
@@ -1935,6 +1971,28 @@
                     : 'linear-gradient(135deg,#0277bd,#0288d1)';
             } else {
                 healPanel.style.display = 'none';
+            }
+
+            // 左下: ユニット選択時は詳細、非選択時は操作ヘルプ
+            const ud = document.getElementById('unitDetail');
+            const kh = document.getElementById('keyHelp');
+            if (sel) {
+                ud.style.display = 'block';
+                kh.style.display = 'none';
+                const pct = sel.hp / sel.maxHp;
+                const defPct = Math.round((gameState.terrain[sel.y]?.[sel.x]?.defense ?? 0) * 100);
+                const fillColor = pct > 0.6 ? '#689f38' : pct > 0.3 ? '#fdd835' : '#e53935';
+                document.getElementById('udName').textContent = sel.getName();
+                document.getElementById('udHp').textContent   = `${sel.hp} / ${sel.maxHp}`;
+                document.getElementById('udHpFill').style.width      = (pct * 100) + '%';
+                document.getElementById('udHpFill').style.background = fillColor;
+                document.getElementById('udAtk').textContent  = sel.attackPower;
+                document.getElementById('udRng').textContent  = sel.attackRange;
+                document.getElementById('udMov').textContent  = sel.moveRange;
+                document.getElementById('udDef').textContent  = (defPct >= 0 ? '+' : '') + defPct + '%';
+            } else {
+                ud.style.display = 'none';
+                kh.style.display = 'block';
             }
         }
 
