@@ -261,6 +261,25 @@
             color: #b71c1c;
         }
 
+        #forceBar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        #forceBar .force-label { color: #5d4037; min-width: 30px; }
+        #forceBar .bar-track {
+            flex: 1;
+            height: 10px;
+            background: #3e2723;
+            border: 1px solid #4e342e;
+            overflow: hidden;
+        }
+        #forceBar .bar-ally  { height: 100%; background: #6d4c41; transition: width 0.4s; }
+        #forceBar .bar-enemy { height: 100%; background: #757575; transition: width 0.4s; }
+
         .unit-card {
             background: linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%);
             padding: 10px;
@@ -609,6 +628,12 @@
             <div class="panel">
                 <div id="turnStatus">ALLIED TURN</div>
                 <div id="difficultyBadge" class="info-badge"></div>
+                <div id="forceBar">
+                    <span class="force-label" id="allyCount">味方 -</span>
+                    <div class="bar-track"><div class="bar-ally" id="allyBar" style="width:50%"></div></div>
+                    <div class="bar-track"><div class="bar-enemy" id="enemyBar" style="width:50%"></div></div>
+                    <span class="force-label" id="enemyCount">敵 -</span>
+                </div>
             </div>
 
             <div class="panel">
@@ -1842,6 +1867,15 @@
                 turnStatus.textContent = 'AXIS TURN';
                 turnStatus.classList.add('enemy-turn');
             }
+
+            // 戦力バー更新
+            const aCount = gameState.playerUnits.length;
+            const eCount = gameState.enemyUnits.length;
+            const total  = Math.max(aCount + eCount, 1);
+            document.getElementById('allyCount').textContent  = `味方 ${aCount}`;
+            document.getElementById('enemyCount').textContent = `敵 ${eCount}`;
+            document.getElementById('allyBar').style.width    = (aCount / total * 100) + '%';
+            document.getElementById('enemyBar').style.width   = (eCount / total * 100) + '%';
 
             const display = document.getElementById('unitsDisplay');
             display.innerHTML = '';
