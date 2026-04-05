@@ -615,13 +615,15 @@
 
         <div id="instructions">
             <strong>操作方法:</strong>
-            • 左ドラッグ: カメラ回転<br>
             • 左クリック: 駒選択・移動・攻撃<br>
+            • 右クリック / ESC: 選択解除<br>
+            • 左ドラッグ: カメラ回転<br>
             • ホイール: ズーム<br>
+            • SPACE / ENTER: ターン終了<br>
+            • R: カメラリセット<br>
             <br>
             <strong>色分け:</strong>
-            濃い茶色 = 味方<br>
-            灰色 = 敵
+            濃い茶色 = 味方 | 灰色 = 敵
         </div>
     </div>
 
@@ -801,7 +803,11 @@
             canvas.addEventListener('mousemove', onMouseMove);
             canvas.addEventListener('mouseup', onMouseUp);
             canvas.addEventListener('wheel', onWheel, { passive: false });
-            canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+            canvas.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                deselectUnit();
+            });
+            document.addEventListener('keydown', handleKeyboard);
 
             // ゲーム初期化
             initGame();
@@ -1438,6 +1444,24 @@
                         updateUI();
                     }
                 }
+            }
+        }
+
+        function deselectUnit() {
+            if (gameState.turn !== 'player' || gameState.gameOver) return;
+            gameState.selectedUnit = null;
+            selectedUnitMesh = null;
+            clearIndicators();
+            updateUI();
+        }
+
+        function handleKeyboard(e) {
+            if (!document.getElementById('gameContainer').classList.contains('active')) return;
+            switch (e.code) {
+                case 'Escape': deselectUnit(); break;
+                case 'Space':  e.preventDefault(); endPlayerTurn(); break;
+                case 'Enter':  endPlayerTurn(); break;
+                case 'KeyR':   resetCamera(); break;
             }
         }
 
