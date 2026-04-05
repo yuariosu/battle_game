@@ -370,6 +370,12 @@
             border-color: #616161;
         }
 
+        .status-badge.partial {
+            background: #ffb74d;
+            color: #e65100;
+            border-color: #ef6c00;
+        }
+
         .status-badge.veteran {
             background: #ffd54f;
             color: #f57f17;
@@ -1699,12 +1705,15 @@
                 card.className = 'unit-card' + (gameState.selectedUnit === unit ? ' selected' : '');
 
                 const hpPercent = (unit.hp / unit.maxHp) * 100;
-                const status = (!unit.hasMoved && !unit.hasAttacked) ? 'ready' : 'done';
+                const status = (!unit.hasMoved && !unit.hasAttacked) ? 'ready'
+                             : (unit.hasMoved && unit.hasAttacked)   ? 'done'
+                             : 'partial';
+                const statusLabel = { ready: 'READY', partial: unit.hasMoved ? '攻撃可' : '移動可', done: 'DONE' }[status];
 
                 card.innerHTML = `
                     <div class="unit-header">
                         <div class="unit-name">${unit.getName()}</div>
-                        <span class="status-badge ${status}">${status === 'ready' ? 'READY' : 'DONE'}</span>
+                        <span class="status-badge ${status}">${statusLabel}</span>
                     </div>
                     <div class="hp-bar-container">
                         <div class="hp-bar ${hpPercent <= 30 ? 'low' : ''}" style="width: ${hpPercent}%"></div>
