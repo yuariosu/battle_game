@@ -545,6 +545,20 @@
             font-weight: bold;
         }
 
+        #battleLog {
+            max-height: 130px;
+            overflow-y: auto;
+            font-size: 11px;
+            color: #3e2723;
+            line-height: 1.6;
+        }
+        #battleLog::-webkit-scrollbar { width: 6px; }
+        #battleLog::-webkit-scrollbar-track { background: rgba(62,39,35,0.15); }
+        #battleLog::-webkit-scrollbar-thumb { background: #6d4c41; }
+        .log-entry { padding: 2px 0; border-bottom: 1px solid rgba(109,76,65,0.2); }
+        .log-entry.kill { color: #bf360c; font-weight: bold; }
+        .log-entry.heal { color: #0277bd; }
+
         #tooltip {
             position: fixed;
             display: none;
@@ -635,6 +649,11 @@
                 <button class="secondary" onclick="resetCamera()">RESET CAMERA</button>
                 <button class="secondary" onclick="backToMenu()">RETREAT</button>
             </div>
+
+            <div class="panel">
+                <div class="panel-title">BATTLE LOG</div>
+                <div id="battleLog"></div>
+            </div>
         </div>
 
         <div id="instructions">
@@ -695,7 +714,8 @@
             turnCount: 1,
             terrain: [],
             difficulty: 'easy',
-            medicMode: false
+            medicMode: false,
+            log: []
         };
 
         // 難易度選択
@@ -938,6 +958,8 @@
             gameState.gameOver = false;
             gameState.turnCount = 1;
             gameState.medicMode = false;
+            gameState.log = [];
+            document.getElementById('battleLog').innerHTML = '';
 
             const difficultyNames = {
                 'easy': '★ PRIVATE - ノルマンディー',
@@ -1539,6 +1561,16 @@
             }
         }
 
+        function addBattleLog(msg, type = '') {
+            gameState.log.unshift({ msg, type });
+            if (gameState.log.length > 8) gameState.log.pop();
+            const el = document.getElementById('battleLog');
+            if (!el) return;
+            el.innerHTML = gameState.log.map((e, i) =>
+                `<div class="log-entry ${e.type}" style="opacity:${Math.max(0.35, 1 - i * 0.1)}">${e.msg}</div>`
+            ).join('');
+        }
+
         function showHealRange(medic) {
             for (const ally of gameState.playerUnits) {
                 if (ally === medic || ally.hp >= ally.maxHp) continue;
@@ -1561,6 +1593,7 @@
             healer.hasAttacked = true;
             gameState.medicMode = false;
             updateHpBar(target);
+            addBattleLog(`⚕ ${healer.getName()} → ${target.getName()}: +40HP回復`, 'heal');
             clearIndicators();
             if (!healer.hasMoved) showMoveRange(healer);
             updateUI();
@@ -1670,6 +1703,8 @@
             // HPバー更新
             updateHpBar(target);
 
+            addBattleLog(`${attacker.getName()} → ${target.getName()}: ${actualDamage}DMG`);
+
             if (target.hp <= 0) {
                 const isEnemy = !target.isPlayer;
                 const index = isEnemy ? gameState.enemyUnits.indexOf(target) : gameState.playerUnits.indexOf(target);
@@ -1679,6 +1714,7 @@
                     units.splice(index, 1);
                     attacker.kills++;
                     removeUnitMesh(target);
+                    addBattleLog(`✕ ${target.getName()} 撃破！`, 'kill');
                 }
 
                 if (gameState.enemyUnits.length === 0) {
