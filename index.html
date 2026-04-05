@@ -2012,19 +2012,40 @@
             gameState.gameOver = true;
             const overlay = document.getElementById('gameOverlay');
             const content = document.getElementById('gameOverContent');
-            const text = document.getElementById('gameOverText');
-            const score = document.getElementById('scoreDisplay');
+            const text    = document.getElementById('gameOverText');
+            const score   = document.getElementById('scoreDisplay');
 
             if (playerWin) {
                 text.textContent = 'VICTORY!';
                 content.classList.add('win');
                 const totalKills = gameState.playerUnits.reduce((sum, u) => sum + u.kills, 0);
-                const survivors = gameState.playerUnits.length;
-                score.textContent = `TURNS: ${gameState.turnCount} | SURVIVORS: ${survivors} | KILLS: ${totalKills}`;
+                const survivors  = gameState.playerUnits.length;
+
+                // 星評価: 生存者数とターン数で判定
+                const maxUnits  = { easy: 8, normal: 9, hard: 10 }[gameState.difficulty];
+                const survRatio = survivors / maxUnits;
+                const stars = (survRatio >= 0.7 && gameState.turnCount <= 12) ? '★★★'
+                            : (survRatio >= 0.4 || gameState.turnCount <= 18) ? '★★'
+                            : '★';
+
+                // 生存者リスト
+                const vetList = gameState.playerUnits
+                    .filter(u => u.kills > 0)
+                    .map(u => `${u.unitName}(${u.kills}kill)`)
+                    .join('  ');
+
+                score.innerHTML = `
+                    <div style="font-size:32px;letter-spacing:8px;margin-bottom:12px;">${stars}</div>
+                    <div>ターン: ${gameState.turnCount} &nbsp;|&nbsp; 生存: ${survivors}体 &nbsp;|&nbsp; 撃破: ${totalKills}</div>
+                    ${vetList ? `<div style="font-size:13px;margin-top:10px;color:#6d4c41;">功績: ${vetList}</div>` : ''}
+                `;
             } else {
                 text.textContent = 'DEFEAT';
                 content.classList.remove('win');
-                score.textContent = `TURNS: ${gameState.turnCount}`;
+                score.innerHTML = `
+                    <div>ターン: ${gameState.turnCount}</div>
+                    <div style="font-size:13px;margin-top:10px;color:#6d4c41;">残存敵部隊: ${gameState.enemyUnits.length}体</div>
+                `;
             }
 
             overlay.style.display = 'flex';
