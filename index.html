@@ -544,6 +544,20 @@
             margin-bottom: 30px;
             font-weight: bold;
         }
+
+        #tooltip {
+            position: fixed;
+            display: none;
+            background: rgba(20, 10, 5, 0.92);
+            color: #efebe9;
+            border: 2px solid #6d4c41;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            pointer-events: none;
+            z-index: 500;
+            line-height: 1.7;
+        }
     </style>
 </head>
 <body>
@@ -642,6 +656,8 @@
             <button class="secondary" onclick="backToMenu()" style="font-size: 18px; padding: 20px 40px;">HEADQUARTERS</button>
         </div>
     </div>
+
+    <div id="tooltip"></div>
 
     <script>
         // Three.js セットアップ
@@ -1235,24 +1251,25 @@
                         const newY = unit.y + dy;
                         if (isValidPosition(newX, newY)) {
                             const targetUnit = getUnitAt(newX, newY);
-                            if (targetUnit && targetUnit.isPlayer !== unit.isPlayer) {
-                                const terrain = gameState.terrain[newY][newX];
-                                const height = TILE_HEIGHT + terrain.height;
+                            const isEnemy = targetUnit && targetUnit.isPlayer !== unit.isPlayer;
+                            const terrain = gameState.terrain[newY][newX];
+                            const height = TILE_HEIGHT + terrain.height;
 
-                                const geo = new THREE.PlaneGeometry(TILE_SIZE * 0.9, TILE_SIZE * 0.9);
-                                const mat = new THREE.MeshBasicMaterial({ 
-                                    color: 0xe57373, 
-                                    transparent: true, 
-                                    opacity: 0.6,
-                                    side: THREE.DoubleSide
-                                });
-                                const mesh = new THREE.Mesh(geo, mat);
-                                mesh.rotation.x = -Math.PI / 2;
-                                mesh.position.set(newX * TILE_SIZE, height + 0.06, newY * TILE_SIZE);
-                                mesh.userData = { type: 'attackIndicator', targetUnit: targetUnit };
-                                scene.add(mesh);
-                                attackIndicators.push(mesh);
-                            }
+                            const geo = new THREE.PlaneGeometry(TILE_SIZE * 0.9, TILE_SIZE * 0.9);
+                            const mat = new THREE.MeshBasicMaterial({
+                                color: isEnemy ? 0xe57373 : 0xffcc80,
+                                transparent: true,
+                                opacity: isEnemy ? 0.65 : 0.22,
+                                side: THREE.DoubleSide
+                            });
+                            const mesh = new THREE.Mesh(geo, mat);
+                            mesh.rotation.x = -Math.PI / 2;
+                            mesh.position.set(newX * TILE_SIZE, height + 0.06, newY * TILE_SIZE);
+                            mesh.userData = isEnemy
+                                ? { type: 'attackIndicator', targetUnit }
+                                : { type: 'attackEmpty' };
+                            scene.add(mesh);
+                            attackIndicators.push(mesh);
                         }
                     }
                 }
@@ -1336,6 +1353,29 @@
                 }
 
                 previousMousePosition = { x: event.clientX, y: event.clientY };
+            }
+
+            // ホバー: 攻撃範囲インジケーター上で戦闘プレビューを表示
+            if (!hasDragged && gameState.selectedUnit && attackIndicators.length > 0) {
+                const mx = (event.clientX / window.innerWidth) * 2 - 1;
+                const my = -(event.clientY / window.innerHeight) * 2 + 1;
+                raycaster.setFromCamera({ x: mx, y: my }, camera);
+                const hits = raycaster.intersectObjects(attackIndicators);
+                if (hits.length > 0 && hits[0].object.userData.type === 'attackIndicator') {
+                    const target = hits[0].object.userData.targetUnit;
+                    const atk = gameState.selectedUnit;
+                    const def = gameState.terrain[target.y][target.x].defense;
+                    const dmg = Math.round(atk.attackPower * (1 - def));
+                    const tip = document.getElementById('tooltip');
+                    tip.innerHTML = `<b>${target.getName()}</b><br>HP: ${target.hp}/${target.maxHp}<br>予測ダメージ: <b style="color:#ef9a9a">${dmg}</b>`;
+                    tip.style.display = 'block';
+                    tip.style.left = (event.clientX + 14) + 'px';
+                    tip.style.top  = (event.clientY + 14) + 'px';
+                } else {
+                    document.getElementById('tooltip').style.display = 'none';
+                }
+            } else {
+                document.getElementById('tooltip').style.display = 'none';
             }
         }
 
