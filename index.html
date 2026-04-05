@@ -1606,19 +1606,37 @@
                     }
 
                     if (nearestPlayer) {
-                        const dirs = [{dx: 1, dy: 0}, {dx: -1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy: -1}];
+                        // BFS で moveRange 内の全到達マスを探索し最善マスへ移動
+                        const visited = new Set();
+                        const queue = [{ x: enemy.x, y: enemy.y, cost: 0 }];
                         let bestMove = null;
                         let bestDist = distance(enemy.x, enemy.y, nearestPlayer.x, nearestPlayer.y);
 
-                        for (const {dx, dy} of dirs) {
-                            const newX = enemy.x + dx;
-                            const newY = enemy.y + dy;
+                        while (queue.length > 0) {
+                            const { x, y, cost } = queue.shift();
+                            const key = `${x},${y}`;
+                            if (visited.has(key)) continue;
+                            visited.add(key);
 
-                            if (isValidPosition(newX, newY) && !getUnitAt(newX, newY)) {
-                                const dist = distance(newX, newY, nearestPlayer.x, nearestPlayer.y);
-                                if (dist < bestDist) {
-                                    bestDist = dist;
-                                    bestMove = {x: newX, y: newY};
+                            if (x !== enemy.x || y !== enemy.y) {
+                                const d = distance(x, y, nearestPlayer.x, nearestPlayer.y);
+                                if (d < bestDist) {
+                                    bestDist = d;
+                                    bestMove = { x, y };
+                                }
+                            }
+
+                            const dirs = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                            for (const [dx, dy] of dirs) {
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                const nkey = `${nx},${ny}`;
+                                if (isValidPosition(nx, ny) && !visited.has(nkey) && !getUnitAt(nx, ny)) {
+                                    const terrain = gameState.terrain[ny][nx];
+                                    const newCost = cost + terrain.moveCost;
+                                    if (newCost <= enemy.moveRange) {
+                                        queue.push({ x: nx, y: ny, cost: newCost });
+                                    }
                                 }
                             }
                         }
