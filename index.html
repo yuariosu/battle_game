@@ -662,26 +662,30 @@
             </div>
 
             <div class="panel">
-                <div class="panel-title">TERRAIN INTEL</div>
-                <div class="legend-item">
-                    <div class="terrain-legend" style="background: #c5e1a5;"></div>
-                    <span>平地 (移動1)</span>
+                <div class="panel-title" onclick="toggleTerrain()" style="cursor:pointer;user-select:none;">
+                    TERRAIN INTEL <span id="terrainToggle" style="float:right;font-size:12px;">▲</span>
                 </div>
-                <div class="legend-item">
-                    <div class="terrain-legend" style="background: #558b2f;"></div>
-                    <span>森林 (移動2, 防御+30%)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="terrain-legend" style="background: #8d6e63;"></div>
-                    <span>山岳 (移動3, 防御+50%)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="terrain-legend" style="background: #64b5f6;"></div>
-                    <span>河川 (移動4, 防御+20%)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="terrain-legend" style="background: #ffe082;"></div>
-                    <span>砂浜 (移動2, 防御-10%)</span>
+                <div id="terrainBody">
+                    <div class="legend-item">
+                        <div class="terrain-legend" style="background: #c5e1a5;"></div>
+                        <span>平地 (移動1)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="terrain-legend" style="background: #558b2f;"></div>
+                        <span>森林 (移動2, 防御+30%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="terrain-legend" style="background: #8d6e63;"></div>
+                        <span>山岳 (移動3, 防御+50%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="terrain-legend" style="background: #64b5f6;"></div>
+                        <span>河川 (移動4, 防御+20%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="terrain-legend" style="background: #ffe082;"></div>
+                        <span>砂浜 (移動2, 防御-10%)</span>
+                    </div>
                 </div>
             </div>
 
@@ -1601,6 +1605,14 @@
                     }
                 }
             }
+        }
+
+        function toggleTerrain() {
+            const body   = document.getElementById('terrainBody');
+            const toggle = document.getElementById('terrainToggle');
+            const hidden = body.style.display === 'none';
+            body.style.display   = hidden ? '' : 'none';
+            toggle.textContent   = hidden ? '▲' : '▼';
         }
 
         function deselectUnit() {
