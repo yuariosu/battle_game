@@ -4,612 +4,683 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OPERATION OVERLORD - 3D TACTICAL WARFARE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
     <style>
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+        :root {
+            --bg-dark: #0a0603;
+            --gold: #c8a044;
+            --gold-light: #e0b865;
+            --cream: #e8d5a3;
+            --text-primary: #c8a87a;
+            --text-secondary: #7a6040;
+            --border: #3a2818;
+            --border-light: #5a4030;
+            --red: #c0392b;
+            --red-light: #e74c3c;
+            --green: #1e7a3a;
+            --green-light: #27ae60;
+        }
 
         body {
-            background: linear-gradient(135deg, #3e2723 0%, #4e342e 50%, #5d4037 100%);
-            font-family: 'Courier New', 'Special Elite', monospace;
-            color: #3e2723;
+            background: radial-gradient(ellipse at 50% 30%, #1a1005 0%, #080401 100%);
+            font-family: 'Rajdhani', 'Courier New', sans-serif;
+            color: var(--text-primary);
             overflow: hidden;
         }
 
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px),
-                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                linear-gradient(rgba(200,160,68,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200,160,68,0.025) 1px, transparent 1px);
+            background-size: 50px 50px;
             pointer-events: none;
             z-index: 1;
         }
 
-        /* スタート画面 */
+        /* ===================== START SCREEN ===================== */
         #startScreen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            background: linear-gradient(135deg, #3e2723 0%, #4e342e 50%, #5d4037 100%);
+            background: radial-gradient(ellipse at 50% 40%, #161005 0%, #060301 100%);
         }
 
         #startContent {
-            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
-            padding: 50px;
-            border-radius: 5px;
-            border: 8px solid #4e342e;
-            box-shadow: 
-                0 0 0 3px #d7ccc8,
-                0 20px 60px rgba(0,0,0,0.5),
-                inset 0 0 50px rgba(0,0,0,0.1);
+            background: linear-gradient(170deg, #171007 0%, #0e0905 100%);
+            padding: 48px 56px;
+            border: 1px solid var(--gold);
+            box-shadow:
+                0 0 0 1px rgba(200,160,68,0.08),
+                0 0 60px rgba(200,160,68,0.08),
+                0 32px 80px rgba(0,0,0,0.95),
+                inset 0 1px 0 rgba(200,160,68,0.1);
             text-align: center;
-            max-width: 600px;
+            max-width: 580px;
+            width: 92%;
             position: relative;
             z-index: 2;
         }
 
         #startContent::before {
-            content: '★';
+            content: '';
             position: absolute;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 32px;
-            color: #bf360c;
+            top: 10px; left: 10px;
+            width: 24px; height: 24px;
+            border-top: 1px solid var(--gold);
+            border-left: 1px solid var(--gold);
+            opacity: 0.5;
+        }
+
+        #startContent::after {
+            content: '';
+            position: absolute;
+            bottom: 10px; right: 10px;
+            width: 24px; height: 24px;
+            border-bottom: 1px solid var(--gold);
+            border-right: 1px solid var(--gold);
+            opacity: 0.5;
         }
 
         #startContent h1 {
-            font-size: 42px;
-            color: #bf360c;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
-            letter-spacing: 4px;
-            font-weight: bold;
+            font-family: 'Russo One', sans-serif;
+            font-size: 40px;
+            color: var(--gold);
+            margin-bottom: 6px;
+            text-shadow:
+                0 0 40px rgba(200,160,68,0.4),
+                0 2px 0 rgba(0,0,0,0.8);
+            letter-spacing: 5px;
             text-transform: uppercase;
+            line-height: 1.1;
         }
 
         #startContent .subtitle {
-            color: #5d4037;
-            font-size: 16px;
-            margin-bottom: 10px;
-            font-weight: bold;
-            letter-spacing: 2px;
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: 4px;
+            font-weight: 600;
+            letter-spacing: 7px;
+            text-transform: uppercase;
+        }
+
+        .start-divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .start-divider::before, .start-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(200,160,68,0.4), transparent);
+        }
+        .start-divider span {
+            color: var(--gold);
+            font-size: 14px;
+            opacity: 0.6;
+            letter-spacing: 8px;
         }
 
         #startContent .year {
-            font-size: 64px;
-            color: #3e2723;
-            font-weight: bold;
-            margin: 20px 0;
-            text-shadow: 3px 3px 0px rgba(191, 54, 12, 0.3);
+            font-family: 'Russo One', sans-serif;
+            font-size: 72px;
+            color: var(--cream);
+            font-weight: 400;
+            margin: 2px 0 18px;
+            text-shadow:
+                0 0 50px rgba(200,160,68,0.25),
+                2px 3px 0 rgba(0,0,0,0.9);
+            letter-spacing: 10px;
+            line-height: 1;
         }
 
         .difficulty-select {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin: 30px 0;
+            gap: 8px;
+            margin: 20px 0;
         }
 
         .difficulty-option {
-            background: linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%);
-            padding: 20px;
-            border: 4px solid #6d4c41;
+            background: rgba(255,255,255,0.025);
+            padding: 14px 18px;
+            border: 1px solid var(--border-light);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.22s ease;
             position: relative;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        .difficulty-option::before {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            right: 8px;
-            bottom: 8px;
-            border: 1px solid rgba(109, 76, 65, 0.3);
-            pointer-events: none;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
 
         .difficulty-option:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-            border-color: #bf360c;
+            background: rgba(200,160,68,0.07);
+            border-color: rgba(200,160,68,0.5);
+            transform: translateX(4px);
         }
 
         .difficulty-option.selected {
-            border-color: #bf360c;
-            background: linear-gradient(135deg, #ffccbc 0%, #ffab91 100%);
-            box-shadow: 0 8px 16px rgba(191, 54, 12, 0.4);
+            border-color: var(--gold);
+            background: rgba(200,160,68,0.1);
+            box-shadow: 0 0 20px rgba(200,160,68,0.1), inset 0 0 20px rgba(200,160,68,0.04);
         }
+
+        .diff-rank {
+            font-family: 'Russo One', sans-serif;
+            font-size: 20px;
+            min-width: 28px;
+            color: var(--gold);
+            opacity: 0.7;
+            text-align: center;
+        }
+
+        .diff-info { flex: 1; }
 
         .difficulty-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #3e2723;
-            margin-bottom: 8px;
-            text-transform: uppercase;
+            font-family: 'Russo One', sans-serif;
+            font-size: 16px;
+            color: var(--cream);
+            margin-bottom: 3px;
             letter-spacing: 2px;
+            text-transform: uppercase;
         }
+
+        .difficulty-option.selected .difficulty-name { color: var(--gold-light); }
 
         .difficulty-desc {
-            font-size: 14px;
-            color: #5d4037;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.3px;
         }
 
-        /* ゲーム画面 */
-        #gameCanvas {
-            display: block;
-            cursor: grab;
-        }
+        /* ===================== GAME CANVAS ===================== */
+        #gameCanvas { display: block; cursor: grab; }
+        #gameCanvas.dragging { cursor: grabbing; }
+        #gameContainer { display: none; }
+        #gameContainer.active { display: block; }
 
-        #gameCanvas.dragging {
-            cursor: grabbing;
-        }
-
-        #gameContainer {
-            display: none;
-        }
-
-        #gameContainer.active {
-            display: block;
-        }
-
+        /* ===================== UI OVERLAY ===================== */
         #ui-overlay {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 340px;
-            max-height: 90vh;
+            top: 14px; right: 14px;
+            width: 300px;
+            max-height: calc(100vh - 28px);
             overflow-y: auto;
             pointer-events: none;
             z-index: 100;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-light) transparent;
         }
-
-        #ui-overlay > * {
-            pointer-events: auto;
-        }
-
-        #ui-overlay::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        #ui-overlay::-webkit-scrollbar-track {
-            background: #3e2723;
-        }
-
-        #ui-overlay::-webkit-scrollbar-thumb {
-            background: #6d4c41;
-            border: 2px solid #3e2723;
-        }
+        #ui-overlay > * { pointer-events: auto; }
+        #ui-overlay::-webkit-scrollbar { width: 3px; }
+        #ui-overlay::-webkit-scrollbar-track { background: transparent; }
+        #ui-overlay::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
 
         .panel {
-            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
-            padding: 15px;
-            border: 5px solid #4e342e;
-            box-shadow: 
-                0 0 0 2px #d7ccc8,
-                0 8px 24px rgba(0,0,0,0.6),
-                inset 0 0 30px rgba(0,0,0,0.05);
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .panel::before {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            right: 8px;
-            bottom: 8px;
-            border: 1px solid rgba(109, 76, 65, 0.2);
-            pointer-events: none;
+            background: rgba(10, 7, 3, 0.9);
+            padding: 11px 13px;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--gold);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.75), inset 0 0 20px rgba(0,0,0,0.3);
+            margin-bottom: 7px;
+            backdrop-filter: blur(6px);
         }
 
         .panel-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #bf360c;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 3px double #4e342e;
+            font-family: 'Russo One', sans-serif;
+            font-size: 10px;
+            font-weight: 400;
+            color: var(--gold);
+            margin-bottom: 9px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(200,160,68,0.18);
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
         }
 
+        /* ===================== TURN STATUS ===================== */
         #turnStatus {
             text-align: center;
-            padding: 18px;
-            font-size: 20px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
-            border: 4px solid #2e7d32;
-            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.4);
-            color: #1b5e20;
+            padding: 11px 16px;
+            font-family: 'Russo One', sans-serif;
+            font-size: 14px;
+            background: linear-gradient(135deg, rgba(30,122,58,0.28) 0%, rgba(39,174,96,0.12) 100%);
+            border: 1px solid #27ae60;
+            color: #2ecc71;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            position: relative;
-        }
-
-        #turnStatus::before {
-            content: '';
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            right: 4px;
-            bottom: 4px;
-            border: 1px solid rgba(255,255,255,0.3);
+            letter-spacing: 3px;
+            box-shadow: 0 0 20px rgba(39,174,96,0.15), inset 0 0 20px rgba(39,174,96,0.04);
+            margin-bottom: 7px;
         }
 
         #turnStatus.enemy-turn {
-            background: linear-gradient(135deg, #e57373 0%, #ef5350 100%);
-            border-color: #c62828;
-            box-shadow: 0 6px 20px rgba(198, 40, 40, 0.4);
-            color: #b71c1c;
+            background: linear-gradient(135deg, rgba(192,57,43,0.28) 0%, rgba(231,76,60,0.12) 100%);
+            border-color: #e74c3c;
+            color: #ff6b6b;
+            box-shadow: 0 0 20px rgba(231,76,60,0.15), inset 0 0 20px rgba(231,76,60,0.04);
         }
 
         #forceBar {
             display: flex;
             align-items: center;
-            gap: 6px;
-            margin-top: 10px;
-            font-size: 11px;
-            font-weight: bold;
+            gap: 5px;
+            margin-top: 7px;
+            font-size: 9px;
+            font-family: 'Share Tech Mono', monospace;
         }
-        #forceBar .force-label { color: #5d4037; min-width: 30px; }
+        #forceBar .force-label { color: var(--text-secondary); min-width: 30px; }
         #forceBar .bar-track {
             flex: 1;
-            height: 10px;
-            background: #3e2723;
-            border: 1px solid #4e342e;
+            height: 5px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
             overflow: hidden;
+            border-radius: 1px;
         }
-        #forceBar .bar-ally  { height: 100%; background: #6d4c41; transition: width 0.4s; }
-        #forceBar .bar-enemy { height: 100%; background: #757575; transition: width 0.4s; }
+        #forceBar .bar-ally { height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); transition: width 0.5s ease; }
+        #forceBar .bar-enemy { height: 100%; background: linear-gradient(90deg, #c0392b, #e74c3c); transition: width 0.5s ease; }
 
+        /* ===================== UNIT CARDS ===================== */
         .unit-card {
-            background: linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%);
-            padding: 10px;
-            margin: 8px 0;
-            border: 3px solid #6d4c41;
-            transition: all 0.3s;
-            font-size: 13px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-            position: relative;
+            background: rgba(255,255,255,0.025);
+            padding: 8px 10px;
+            margin: 4px 0;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--border-light);
+            transition: all 0.2s ease;
+            font-size: 12px;
             cursor: pointer;
         }
 
-        .unit-card::before {
-            content: '';
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            right: 4px;
-            bottom: 4px;
-            border: 1px solid rgba(109, 76, 65, 0.2);
-            pointer-events: none;
-        }
-
         .unit-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(109, 76, 65, 0.4);
+            background: rgba(200,160,68,0.07);
+            border-left-color: var(--gold);
+            transform: translateX(3px);
         }
 
         .unit-card.selected {
-            border-color: #bf360c;
-            background: linear-gradient(135deg, #ffccbc 0%, #ffab91 100%);
-            box-shadow: 0 5px 20px rgba(191, 54, 12, 0.5);
+            border-color: rgba(200,160,68,0.5);
+            border-left-color: var(--gold-light);
+            background: rgba(200,160,68,0.1);
+            box-shadow: 0 0 14px rgba(200,160,68,0.12);
         }
 
         .unit-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
         .unit-name {
-            font-weight: bold;
-            font-size: 14px;
-            color: #3e2723;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--cream);
+            letter-spacing: 0.5px;
         }
 
         .hp-bar-container {
-            background: #3e2723;
-            height: 10px;
-            border: 2px solid #4e342e;
+            background: rgba(0,0,0,0.5);
+            height: 4px;
+            border: 1px solid var(--border);
             overflow: hidden;
-            margin: 6px 0;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            margin: 5px 0;
+            border-radius: 1px;
         }
 
         .hp-bar {
             height: 100%;
-            background: linear-gradient(90deg, #689f38 0%, #7cb342 100%);
-            transition: width 0.3s, background 0.3s;
-            box-shadow: inset 0 0 10px rgba(255,255,255,0.3);
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            transition: width 0.4s ease, background 0.4s ease;
+        }
+
+        .hp-bar.mid {
+            background: linear-gradient(90deg, #c87f00, #e0a000);
         }
 
         .hp-bar.low {
-            background: linear-gradient(90deg, #d32f2f 0%, #e53935 100%);
+            background: linear-gradient(90deg, #c0392b, #e74c3c);
         }
 
         .unit-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 4px;
-            font-size: 11px;
-            color: #3e2723;
-            margin-top: 6px;
+            gap: 3px;
+            font-size: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--text-secondary);
+            margin-top: 4px;
         }
 
         .stat {
-            background: rgba(62, 39, 35, 0.1);
-            padding: 3px 6px;
-            border: 1px solid #6d4c41;
+            background: rgba(255,255,255,0.03);
+            padding: 2px 5px;
+            border: 1px solid rgba(58,40,24,0.5);
         }
 
-        .stat-label {
-            color: #5d4037;
-            font-weight: bold;
-        }
+        .stat-label { color: var(--gold); }
 
+        /* ===================== STATUS BADGES ===================== */
         .status-badge {
             display: inline-block;
-            padding: 4px 10px;
-            font-size: 10px;
-            font-weight: bold;
-            border: 2px solid;
+            padding: 2px 7px;
+            font-size: 9px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
+            border-radius: 1px;
         }
 
         .status-badge.ready {
-            background: #81c784;
-            color: #1b5e20;
-            border-color: #2e7d32;
+            background: rgba(39,174,96,0.18);
+            color: #2ecc71;
+            border: 1px solid rgba(39,174,96,0.45);
         }
 
         .status-badge.done {
-            background: #bdbdbd;
-            color: #424242;
-            border-color: #616161;
+            background: rgba(80,80,80,0.2);
+            color: #666;
+            border: 1px solid rgba(80,80,80,0.3);
         }
 
         .status-badge.partial {
-            background: #ffb74d;
-            color: #e65100;
-            border-color: #ef6c00;
+            background: rgba(211,84,0,0.18);
+            color: #e67e22;
+            border: 1px solid rgba(211,84,0,0.45);
         }
 
         .status-badge.veteran {
-            background: #ffd54f;
-            color: #f57f17;
-            border-color: #f9a825;
+            background: rgba(200,160,68,0.18);
+            color: var(--gold-light);
+            border: 1px solid rgba(200,160,68,0.45);
         }
 
+        /* ===================== BUTTONS ===================== */
         button {
-            background: linear-gradient(135deg, #6d4c41 0%, #5d4037 100%);
-            color: #efebe9;
-            border: 4px solid #3e2723;
-            padding: 16px;
-            font-size: 16px;
+            background: rgba(200,160,68,0.08);
+            color: var(--cream);
+            border: 1px solid var(--border-light);
+            border-bottom: 2px solid var(--border);
+            padding: 11px 14px;
+            font-family: 'Russo One', sans-serif;
+            font-size: 12px;
             cursor: pointer;
-            font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 2px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            font-family: 'Courier New', monospace;
-            position: relative;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
             width: 100%;
-            margin: 5px 0;
-        }
-
-        button::before {
-            content: '';
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            right: 4px;
-            bottom: 4px;
-            border: 1px solid rgba(239, 235, 233, 0.2);
-            pointer-events: none;
+            margin: 3px 0;
         }
 
         button:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            background: linear-gradient(135deg, #5d4037 0%, #4e342e 100%);
+            background: rgba(200,160,68,0.18);
+            border-color: var(--gold);
+            color: var(--gold-light);
+            box-shadow: 0 0 16px rgba(200,160,68,0.18), 0 4px 12px rgba(0,0,0,0.6);
+            transform: translateY(-1px);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.5);
         }
 
         button:disabled {
-            background: linear-gradient(135deg, #8d6e63 0%, #795548 100%);
+            opacity: 0.3;
             cursor: not-allowed;
-            opacity: 0.6;
         }
 
         button.success {
-            background: linear-gradient(135deg, #558b2f 0%, #689f38 100%);
-            border-color: #33691e;
+            background: rgba(39,174,96,0.12);
+            border-color: rgba(39,174,96,0.45);
+            border-bottom: 2px solid rgba(30,122,58,0.7);
+            color: #2ecc71;
         }
-
         button.success:hover:not(:disabled) {
-            background: linear-gradient(135deg, #689f38 0%, #7cb342 100%);
+            background: rgba(39,174,96,0.22);
+            border-color: #27ae60;
+            color: #2ecc71;
+            box-shadow: 0 0 18px rgba(39,174,96,0.22), 0 4px 12px rgba(0,0,0,0.6);
         }
 
         button.secondary {
-            background: linear-gradient(135deg, #bf360c 0%, #d84315 100%);
-            border-color: #3e2723;
+            background: rgba(192,57,43,0.1);
+            border-color: rgba(192,57,43,0.38);
+            border-bottom: 2px solid rgba(150,40,30,0.6);
+            color: #e74c3c;
         }
-
         button.secondary:hover:not(:disabled) {
-            background: linear-gradient(135deg, #d84315 0%, #bf360c 100%);
+            background: rgba(192,57,43,0.2);
+            border-color: #c0392b;
+            color: #ff6b6b;
+            box-shadow: 0 0 18px rgba(192,57,43,0.18), 0 4px 12px rgba(0,0,0,0.6);
         }
 
+        /* ===================== TERRAIN LEGEND ===================== */
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px;
-            background: rgba(62, 39, 35, 0.1);
-            border: 2px solid #6d4c41;
-            margin: 6px 0;
-            font-size: 12px;
-            color: #3e2723;
+            gap: 8px;
+            padding: 5px 6px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(58,40,24,0.4);
+            margin: 3px 0;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
 
         .terrain-legend {
-            width: 24px;
-            height: 24px;
-            border: 2px solid #3e2723;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            width: 16px; height: 16px;
+            border: 1px solid rgba(0,0,0,0.5);
+            flex-shrink: 0;
         }
 
+        /* ===================== LEFT PANEL ===================== */
         #instructions {
-            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
-            padding: 15px;
-            border: 5px solid #4e342e;
-            box-shadow: 0 0 0 2px #d7ccc8, 0 8px 24px rgba(0,0,0,0.6);
+            background: rgba(10, 7, 3, 0.92);
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-right: 3px solid var(--gold);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.75);
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            max-width: 300px;
-            font-size: 12px;
-            color: #3e2723;
+            bottom: 14px; left: 14px;
+            max-width: 250px;
+            font-size: 11px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 500;
+            color: var(--text-secondary);
             z-index: 100;
+            backdrop-filter: blur(6px);
+            line-height: 1.7;
         }
 
         #instructions strong {
-            color: #bf360c;
+            font-family: 'Russo One', sans-serif;
+            color: var(--gold);
             display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
+            margin-bottom: 4px;
+            font-size: 9px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
         }
 
+        /* ===================== UNIT DETAIL ===================== */
         #unitDetail { display: none; }
         #unitDetail .ud-name {
-            font-size: 15px; font-weight: bold; color: #3e2723;
-            border-bottom: 2px solid #6d4c41; padding-bottom: 6px; margin-bottom: 8px;
+            font-family: 'Russo One', sans-serif;
+            font-size: 13px;
+            color: var(--cream);
+            border-bottom: 1px solid rgba(200,160,68,0.2);
+            padding-bottom: 5px;
+            margin-bottom: 7px;
+            letter-spacing: 1px;
         }
         #unitDetail .ud-hp-track {
-            background: #3e2723; height: 8px;
-            border: 1px solid #4e342e; margin: 4px 0 8px;
+            background: rgba(0,0,0,0.5);
+            height: 5px;
+            border: 1px solid var(--border);
+            margin: 4px 0 8px;
+            border-radius: 1px;
+            overflow: hidden;
         }
-        #unitDetail .ud-hp-fill { height: 100%; transition: width 0.3s; }
+        #unitDetail .ud-hp-fill { height: 100%; transition: width 0.3s ease; border-radius: 1px; }
         #unitDetail .ud-grid {
             display: grid; grid-template-columns: 1fr 1fr;
-            gap: 4px; font-size: 11px;
+            gap: 3px; font-size: 10px;
+            font-family: 'Share Tech Mono', monospace;
         }
         #unitDetail .ud-cell {
-            background: rgba(62,39,35,0.1);
-            border: 1px solid #6d4c41; padding: 3px 6px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(58,40,24,0.4);
+            padding: 3px 6px;
+            color: var(--text-secondary);
         }
-        #unitDetail .ud-label { color: #5d4037; font-weight: bold; }
+        #unitDetail .ud-label { color: var(--gold); }
 
         .info-badge {
             display: inline-block;
-            background: rgba(191, 54, 12, 0.2);
-            padding: 6px 12px;
-            border: 2px solid #bf360c;
-            font-size: 12px;
-            margin: 8px 5px 5px 0;
-            font-weight: bold;
-            color: #3e2723;
+            background: rgba(200,160,68,0.1);
+            padding: 3px 9px;
+            border: 1px solid rgba(200,160,68,0.3);
+            font-size: 9px;
+            margin: 5px 3px 3px 0;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            color: var(--gold);
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
+        /* ===================== GAME OVER ===================== */
         #gameOverlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(62, 39, 35, 0.95);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            backdrop-filter: blur(10px);
         }
 
         #gameOverContent {
-            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 100%);
-            padding: 60px;
-            border: 10px solid #4e342e;
+            background: linear-gradient(160deg, #181007 0%, #0e0904 100%);
+            padding: 56px 68px;
+            border: 1px solid var(--gold);
             text-align: center;
-            box-shadow: 0 0 0 3px #d7ccc8, 0 20px 60px rgba(0,0,0,0.8);
+            box-shadow:
+                0 0 0 1px rgba(200,160,68,0.08),
+                0 0 60px rgba(200,160,68,0.1),
+                0 32px 80px rgba(0,0,0,0.98);
             position: relative;
+            min-width: 380px;
         }
 
         #gameOverContent::before {
-            content: '★ ★ ★';
+            content: '◆  ◆  ◆';
             position: absolute;
-            top: 20px;
+            top: 18px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 24px;
-            color: #bf360c;
-            letter-spacing: 20px;
+            font-size: 12px;
+            color: var(--gold);
+            letter-spacing: 18px;
+            opacity: 0.45;
         }
 
         #gameOverContent.win {
-            border-color: #2e7d32;
+            border-color: #27ae60;
+            box-shadow:
+                0 0 0 1px rgba(39,174,96,0.1),
+                0 0 60px rgba(39,174,96,0.12),
+                0 32px 80px rgba(0,0,0,0.98);
         }
 
+        #gameOverContent.win::before { content: '★  ★  ★'; color: #27ae60; opacity: 0.5; }
+
         #gameOverText {
-            font-size: 48px;
-            margin-bottom: 20px;
-            color: #3e2723;
-            font-weight: bold;
+            font-family: 'Russo One', sans-serif;
+            font-size: 50px;
+            margin: 22px 0 14px;
+            color: var(--cream);
             text-transform: uppercase;
-            letter-spacing: 4px;
+            letter-spacing: 6px;
+            text-shadow: 0 0 30px rgba(200,160,68,0.35);
+        }
+
+        #gameOverContent.win #gameOverText {
+            color: #2ecc71;
+            text-shadow: 0 0 30px rgba(39,174,96,0.45);
         }
 
         #scoreDisplay {
-            font-size: 18px;
-            color: #5d4037;
-            margin-bottom: 30px;
-            font-weight: bold;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-weight: 600;
+            line-height: 2;
+            letter-spacing: 0.5px;
         }
 
+        /* ===================== BATTLE LOG ===================== */
         #battleLog {
-            max-height: 130px;
+            max-height: 110px;
             overflow-y: auto;
-            font-size: 11px;
-            color: #3e2723;
-            line-height: 1.6;
+            font-size: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
         }
-        #battleLog::-webkit-scrollbar { width: 6px; }
-        #battleLog::-webkit-scrollbar-track { background: rgba(62,39,35,0.15); }
-        #battleLog::-webkit-scrollbar-thumb { background: #6d4c41; }
-        .log-entry { padding: 2px 0; border-bottom: 1px solid rgba(109,76,65,0.2); }
-        .log-entry.kill { color: #bf360c; font-weight: bold; }
-        .log-entry.heal { color: #0277bd; }
+        #battleLog::-webkit-scrollbar { width: 3px; }
+        #battleLog::-webkit-scrollbar-track { background: transparent; }
+        #battleLog::-webkit-scrollbar-thumb { background: var(--border-light); }
+        .log-entry { padding: 1px 0; border-bottom: 1px solid rgba(58,40,24,0.2); }
+        .log-entry.kill { color: #e74c3c; }
+        .log-entry.heal { color: #3498db; }
 
+        /* ===================== TOOLTIP ===================== */
         #tooltip {
             position: fixed;
             display: none;
-            background: rgba(20, 10, 5, 0.92);
-            color: #efebe9;
-            border: 2px solid #6d4c41;
+            background: rgba(6, 4, 2, 0.97);
+            color: var(--cream);
+            border: 1px solid var(--border-light);
+            border-left: 3px solid var(--gold);
             padding: 8px 12px;
-            font-size: 12px;
-            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            font-family: 'Share Tech Mono', monospace;
             pointer-events: none;
             z-index: 500;
-            line-height: 1.7;
+            line-height: 1.8;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.85);
         }
     </style>
 </head>
@@ -617,26 +688,37 @@
     <!-- スタート画面 -->
     <div id="startScreen">
         <div id="startContent">
+            <div class="subtitle">— CLASSIFIED OPERATION —</div>
             <h1>OPERATION OVERLORD</h1>
             <div class="subtitle">3D TACTICAL WARFARE</div>
+            <div class="start-divider"><span>✦ ✦ ✦</span></div>
             <div class="year">1944</div>
 
             <div class="difficulty-select">
                 <div class="difficulty-option selected" data-difficulty="easy">
-                    <div class="difficulty-name">★ PRIVATE</div>
-                    <div class="difficulty-desc">ノルマンディー上陸作戦 | 敵6体 vs 味方8体 | 初級兵士</div>
+                    <div class="diff-rank">I</div>
+                    <div class="diff-info">
+                        <div class="difficulty-name">PRIVATE</div>
+                        <div class="difficulty-desc">ノルマンディー上陸作戦 — 敵6 vs 味方8 — 初級</div>
+                    </div>
                 </div>
                 <div class="difficulty-option" data-difficulty="normal">
-                    <div class="difficulty-name">★★ SERGEANT</div>
-                    <div class="difficulty-desc">東部戦線 | 敵8体 vs 味方9体 | 熟練兵士</div>
+                    <div class="diff-rank">II</div>
+                    <div class="diff-info">
+                        <div class="difficulty-name">SERGEANT</div>
+                        <div class="difficulty-desc">東部戦線 — 敵8 vs 味方9 — 熟練</div>
+                    </div>
                 </div>
                 <div class="difficulty-option" data-difficulty="hard">
-                    <div class="difficulty-name">★★★ CAPTAIN</div>
-                    <div class="difficulty-desc">アルデンヌの戦い | 敵10体 vs 味方10体 | 精鋭部隊</div>
+                    <div class="diff-rank">III</div>
+                    <div class="diff-info">
+                        <div class="difficulty-name">CAPTAIN</div>
+                        <div class="difficulty-desc">アルデンヌの戦い — 敵10 vs 味方10 — 精鋭</div>
+                    </div>
                 </div>
             </div>
 
-            <button class="success" onclick="startGame()" style="font-size: 20px; padding: 20px;">DEPLOY FORCES</button>
+            <button class="success" onclick="startGame()" style="font-size: 14px; padding: 16px; letter-spacing: 4px; margin-top: 8px;">⬡ &nbsp;DEPLOY FORCES &nbsp;⬡</button>
         </div>
     </div>
 
@@ -690,7 +772,7 @@
             </div>
 
             <div class="panel" id="healPanel" style="display:none;">
-                <button id="healBtn" onclick="activateMedicHeal()" style="background:linear-gradient(135deg,#0277bd,#0288d1);border-color:#01579b;">⚕ HEAL (+40HP)</button>
+                <button id="healBtn" onclick="activateMedicHeal()" style="background:rgba(21,101,192,0.18);border-color:rgba(52,152,219,0.5);border-bottom:2px solid rgba(21,101,192,0.6);color:#3498db;">⚕ &nbsp;HEAL (+40HP)</button>
             </div>
 
             <div class="panel">
@@ -709,11 +791,11 @@
             <!-- ユニット選択時: 詳細情報 -->
             <div id="unitDetail">
                 <div class="ud-name" id="udName">—</div>
-                <div style="font-size:11px;color:#5d4037;margin-bottom:2px;">
+                <div style="font-size:10px;color:var(--text-secondary);margin-bottom:2px;font-family:'Share Tech Mono',monospace;">
                     HP: <span id="udHp">—</span>
                 </div>
                 <div class="ud-hp-track">
-                    <div class="ud-hp-fill" id="udHpFill" style="width:100%;background:#689f38"></div>
+                    <div class="ud-hp-fill" id="udHpFill" style="width:100%;background:#27ae60"></div>
                 </div>
                 <div class="ud-grid">
                     <div class="ud-cell"><span class="ud-label">ATK:</span> <span id="udAtk">—</span></div>
@@ -740,8 +822,8 @@
         <div id="gameOverContent">
             <div id="gameOverText">VICTORY!</div>
             <div id="scoreDisplay"></div>
-            <button class="success" onclick="restartGame()" style="font-size: 18px; padding: 20px 40px; margin-right: 10px;">REDEPLOY</button>
-            <button class="secondary" onclick="backToMenu()" style="font-size: 18px; padding: 20px 40px;">HEADQUARTERS</button>
+            <button class="success" onclick="restartGame()" style="font-size: 13px; padding: 14px 36px; letter-spacing: 3px; width: auto; margin-right: 10px;">REDEPLOY</button>
+            <button class="secondary" onclick="backToMenu()" style="font-size: 13px; padding: 14px 36px; letter-spacing: 3px; width: auto;">HEADQUARTERS</button>
         </div>
     </div>
 
@@ -1944,10 +2026,10 @@
                         <span class="status-badge ${status}">${statusLabel}</span>
                     </div>
                     <div class="hp-bar-container">
-                        <div class="hp-bar ${hpPercent <= 30 ? 'low' : ''}" style="width: ${hpPercent}%"></div>
+                        <div class="hp-bar ${hpPercent <= 30 ? 'low' : hpPercent <= 60 ? 'mid' : ''}" style="width: ${hpPercent}%"></div>
                     </div>
-                    <div style="font-size: 11px; color: #3e2723; margin-top: 4px; font-weight: bold;">
-                        HP: ${unit.hp}/${unit.maxHp} | KILLS: ${unit.kills}
+                    <div style="font-size: 10px; color: var(--text-secondary); margin-top: 4px; font-family: 'Share Tech Mono', monospace;">
+                        HP ${unit.hp}/${unit.maxHp} &nbsp;|&nbsp; KIA: ${unit.kills}
                     </div>
                     <div class="unit-stats">
                         <div class="stat"><span class="stat-label">MOVE:</span> ${unit.moveRange}</div>
@@ -1993,7 +2075,7 @@
                 kh.style.display = 'none';
                 const pct = sel.hp / sel.maxHp;
                 const defPct = Math.round((gameState.terrain[sel.y]?.[sel.x]?.defense ?? 0) * 100);
-                const fillColor = pct > 0.6 ? '#689f38' : pct > 0.3 ? '#fdd835' : '#e53935';
+                const fillColor = pct > 0.6 ? '#27ae60' : pct > 0.3 ? '#e0a000' : '#e74c3c';
                 document.getElementById('udName').textContent = sel.getName();
                 document.getElementById('udHp').textContent   = `${sel.hp} / ${sel.maxHp}`;
                 document.getElementById('udHpFill').style.width      = (pct * 100) + '%';
@@ -2035,16 +2117,16 @@
                     .join('  ');
 
                 score.innerHTML = `
-                    <div style="font-size:32px;letter-spacing:8px;margin-bottom:12px;">${stars}</div>
+                    <div style="font-size:28px;letter-spacing:10px;margin-bottom:12px;">${stars}</div>
                     <div>ターン: ${gameState.turnCount} &nbsp;|&nbsp; 生存: ${survivors}体 &nbsp;|&nbsp; 撃破: ${totalKills}</div>
-                    ${vetList ? `<div style="font-size:13px;margin-top:10px;color:#6d4c41;">功績: ${vetList}</div>` : ''}
+                    ${vetList ? `<div style="font-size:12px;margin-top:10px;color:var(--gold);font-family:'Share Tech Mono',monospace;">功績: ${vetList}</div>` : ''}
                 `;
             } else {
                 text.textContent = 'DEFEAT';
                 content.classList.remove('win');
                 score.innerHTML = `
                     <div>ターン: ${gameState.turnCount}</div>
-                    <div style="font-size:13px;margin-top:10px;color:#6d4c41;">残存敵部隊: ${gameState.enemyUnits.length}体</div>
+                    <div style="font-size:12px;margin-top:10px;color:var(--text-secondary);font-family:'Share Tech Mono',monospace;">残存敵部隊: ${gameState.enemyUnits.length}体</div>
                 `;
             }
 
